@@ -27,12 +27,30 @@ class AppState extends ChangeNotifier {
   final List<AgentLogEntry> agentLogs = [];
 
   // ─── Intent / Booking State ───
+  String? currentQuery;
   ParsedIntent? currentIntent;
   List<BharosaReport>? rankedProviders;
   BharosaReport? selectedProvider;
   NegotiationResult? negotiationResult;
   BookingReceipt? currentBooking;
   String? geminiApiKey;
+
+  // Pipeline-mode entry point (no chat messages — used by new search-based home)
+  void startPipeline(String query) {
+    currentQuery = query;
+    currentIntent = null;
+    rankedProviders = null;
+    selectedProvider = null;
+    negotiationResult = null;
+    currentBooking = null;
+    agentLogs.clear();
+    messages.clear();
+    _stage = PipelineStage.idle;
+    _activeAgent = null;
+    _isProcessing = true;
+    notifyListeners();
+    _runFahamAgent(query);
+  }
 
   void setGeminiApiKey(String key) {
     geminiApiKey = key;

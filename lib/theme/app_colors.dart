@@ -1,35 +1,44 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  // ─── Brand Primary ───
-  static const Color primary = Color(0xFF00C896);
-  static const Color primaryDark = Color(0xFF00A07A);
-  static const Color primaryLight = Color(0xFF4DFFC4);
-  static const Color primaryContainer = Color(0xFF003D2E);
-  static const Color onPrimary = Color(0xFF001A12);
-  static const Color onPrimaryContainer = Color(0xFF4DFFC4);
+  // Design tokens — terracotta accent (#e06a4a from Figma handoff)
+  static const Color accent = Color(0xFFE06A4A);
+  static const Color accentDeep = Color(0xFFA04A2E);
+  static const Color gold = Color(0xFFD4A857);
 
-  // ─── Background / Surface ───
-  static const Color background = Color(0xFF080E0C);
-  static const Color surface = Color(0xFF10191A);
-  static const Color surfaceElevated = Color(0xFF172120);
-  static const Color surfaceCard = Color(0xFF1C2A28);
-  static const Color surfaceHighest = Color(0xFF243330);
-  static const Color divider = Color(0xFF1F2F2C);
+  // Backwards-compat aliases used by existing screens
+  static const Color primary = accent;
+  static const Color primaryDark = accentDeep;
+  static const Color primaryLight = Color(0xFFFF9B7D);
+  static const Color primaryContainer = Color(0xFF3D1A0E);
+  static const Color onPrimary = Color(0xFF1A0A05);
+  static const Color onPrimaryContainer = Color(0xFFFFB59D);
 
-  // ─── Text ───
-  static const Color textPrimary = Color(0xFFE2EFEA);
-  static const Color textSecondary = Color(0xFF7EA99A);
-  static const Color textMuted = Color(0xFF4A6B5E);
-  static const Color textOnDark = Color(0xFFE2EFEA);
+  // Backgrounds
+  static const Color background = Color(0xFF0A0C0F);
+  static const Color surface = Color(0xFF14181D);
+  static const Color surfaceElevated = Color(0xFF14181D);
+  static const Color surfaceCard = Color(0xFF1C2128);
+  static const Color surfaceHighest = Color(0xFF242B33);
+  static const Color divider = Color(0x14F1EDE4);
 
-  // ─── Semantic ───
+  // Lines
+  static const Color line = Color(0x14F1EDE4);   // 8% opacity of text
+  static const Color line2 = Color(0x24F1EDE4);  // 14% opacity of text
+
+  // Text
+  static const Color textPrimary = Color(0xFFF1EDE4);
+  static const Color textSecondary = Color(0xFFB8BCC2);
+  static const Color textMuted = Color(0xFF6E747C);
+  static const Color textOnDark = Color(0xFFF1EDE4);
+
+  // Semantic
   static const Color success = Color(0xFF10B981);
   static const Color warning = Color(0xFFF59E0B);
   static const Color error = Color(0xFFEF4444);
   static const Color info = Color(0xFF3B82F6);
 
-  // ─── Agent Identity Colors ───
+  // Agent Identity (unchanged — used by logs/negotiation screens)
   static const Color agentFaham = Color(0xFF3B82F6);
   static const Color agentFahamBg = Color(0xFF0D1C35);
   static const Color agentFahamGlow = Color(0x4D3B82F6);
@@ -54,31 +63,37 @@ class AppColors {
   static const Color agentYaadDahaniBg = Color(0xFF2A1000);
   static const Color agentYaadDahaniGlow = Color(0x4DF97316);
 
-  // ─── Trust Score Colors ───
+  // Trust
   static const Color trustHigh = Color(0xFF10B981);
   static const Color trustMedium = Color(0xFFF59E0B);
   static const Color trustLow = Color(0xFFEF4444);
 
-  // ─── Glass Morphism ───
+  // Glass
   static const Color glassSurface = Color(0x1AFFFFFF);
   static const Color glassBorder = Color(0x26FFFFFF);
   static const Color glassOverlay = Color(0x80000000);
 
-  // ─── Gradient ───
+  // Gradients
   static const LinearGradient primaryGradient = LinearGradient(
-    colors: [Color(0xFF00C896), Color(0xFF008F6B)],
+    colors: [Color(0xFFE06A4A), Color(0xFFA04A2E)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
   static const LinearGradient darkGradient = LinearGradient(
-    colors: [Color(0xFF0A1410), Color(0xFF172120)],
+    colors: [Color(0xFF14100E), Color(0xFF0D0F12)],
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
   );
 
   static const LinearGradient cardGradient = LinearGradient(
-    colors: [Color(0xFF1C2A28), Color(0xFF172120)],
+    colors: [Color(0xFF1C2128), Color(0xFF14181D)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  static const LinearGradient goldGradient = LinearGradient(
+    colors: [Color(0xFFD4A857), Color(0xFF8A6A30)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );

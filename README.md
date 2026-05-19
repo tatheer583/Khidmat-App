@@ -114,7 +114,7 @@ Outputs:
 - APK → `build/app/outputs/flutter-apk/app-release.apk`
 - AAB → `build/app/outputs/bundle/release/app-release.aab`
 
-Pre-built artifacts are also kept in the [`release/`](release/) folder.
+Latest APK (pre-built): [release/app-release.apk](release/app-release.apk)
 
 ---
 
