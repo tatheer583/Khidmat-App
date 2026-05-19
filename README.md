@@ -5,9 +5,9 @@
 ### *"Aapki khidmat mein, hamesha"*
 **Always at your service**
 
-[![Expo](https://img.shields.io/badge/Expo-54.0.33-000020?style=for-the-badge&logo=expo&logoColor=white)](https://expo.dev)
-[![React Native](https://img.shields.io/badge/React_Native-0.81.5-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://reactnative.dev)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![Flutter](https://img.shields.io/badge/Flutter-3.27-02569B?style=for-the-badge&logo=flutter&logoColor=white)](https://flutter.dev)
+[![Dart](https://img.shields.io/badge/Dart-3.6-0175C2?style=for-the-badge&logo=dart&logoColor=white)](https://dart.dev)
+[![Gemini](https://img.shields.io/badge/Google_Gemini-2.0_Flash-8E75B2?style=for-the-badge&logo=google&logoColor=white)](https://ai.google.dev)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 
 </div>
@@ -16,156 +16,142 @@
 
 ## 📱 About KHIDMAT
 
-**KHIDMAT** is an AI-powered home services booking app built for Pakistan. It connects users with trusted local service providers — plumbers, electricians, AC technicians, tutors, and more — using a multi-agent AI pipeline that understands Urdu/English requests, finds providers, verifies trust, negotiates prices, and books appointments automatically.
+**KHIDMAT** is an **Agentic AI Service Orchestrator** for Pakistan's informal economy, built for the **Google Antigravity Hackathon — Challenge 2**.
 
-> **Digital Amanah** — Reliable AI backend with a friendly WhatsApp-style UX.
+It automates the end-to-end lifecycle of a service request — from natural-language user intent to a confirmed booking with follow-up — connecting users with trusted local service providers (plumbers, electricians, AC technicians, tutors, beauticians and more) through a transparent multi-agent AI pipeline.
+
+> **Not a listing app** — KHIDMAT demonstrates *agentic automation*: reasoning, decision-making, action simulation, and traceable workflow execution.
 
 ---
 
 ## ✨ Features
 
-- 🤖 **6 AI Agents** working in sequence to handle your request end-to-end
-- 💬 **Natural Language Chat** — type in Urdu or English
-- 🔍 **Smart Provider Discovery** — filters by proximity, rating & availability
-- 🛡️ **Trust Scoring (BHAROSA)** — verifies credentials and community reviews
-- 💰 **Auto Negotiation (MOL-BHAAV)** — gets you the best price automatically
-- 📋 **Digital Booking Receipt** — with booking ID and provider details
-- 📱 **Reminders & Follow-up** — post-booking monitoring
+- 🤖 **6 AI Agents** working in a structured pipeline, end-to-end
+- 💬 **Natural Language Chat** — Urdu, Roman Urdu, English & code-switched input
+- 🔍 **Smart Provider Discovery** — filters by category, proximity & availability
+- 🛡️ **Trust Scoring (BHAROSA)** — verified completion data, not just star ratings
+- 💰 **Auto Negotiation (MOL-BHAAV)** — market-rate-aware price negotiation
+- 📋 **Booking Simulation** — digital receipt with booking ID & price breakdown
+- 🔔 **Follow-Up Automation** — reminders, status updates & rating prompts
+- 🧾 **Agent Trace Logs** — full reasoning & decision trace for every request
 
 ---
 
-## 🤖 The 6 AI Agents
+## 🤖 The Agentic Pipeline
 
-| Agent | Urdu Name | Role | Color |
-|-------|-----------|------|-------|
-| **FAHAM** | فہم | Understanding & Intent Parsing | 🔵 Blue |
-| **DHOOND** | ڈھونڈ | Provider Discovery & Search | 🟡 Amber |
-| **BHAROSA** | بھروسا | Trust Verification & Ranking | 🟢 Emerald |
-| **MOL-BHAAV** | مول بھاؤ | Price Negotiation | 🟣 Purple |
-| **BOOK** | بُک | Booking & Confirmation | 🩵 Teal |
-| **YAAD-DAHANI** | یاد دہانی | Reminders & Follow-up | 🟠 Orange |
+| Agent | Urdu Name | Role |
+|-------|-----------|------|
+| **FAHAM** | فہم | Intent parsing — language detection + service/location/time/urgency extraction |
+| **DHOOND** | ڈھونڈ | Provider discovery — category & location matching |
+| **BHAROSA** | بھروسا | Trust scoring — `completion×0.4 + speed×0.3 + vouches×0.2 + rating×0.1` |
+| **MOL-BHAAV** | مول بھاؤ | Price negotiation — 2-round market-rate negotiation |
+| **BOOK** | بُک | Booking confirmation & receipt generation |
+| **YAAD-DAHANI** | یاد دہانی | Reminders & follow-up automation |
+
+**Flow:** `Intent → Discovery → Trust → Negotiation → Booking → Follow-up`
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Technology | Version | Purpose |
-|-----------|---------|---------|
-| Expo | ~54.0.33 | Framework |
-| React Native | 0.81.5 | Mobile UI |
-| Expo Router | ~6.0.23 | File-based navigation |
-| React Native Reanimated | ~4.1.1 | Animations |
-| TypeScript | ~5.9.2 | Type safety |
-| Material Design 3 | — | Design system |
+| Technology | Purpose |
+|-----------|---------|
+| Flutter 3.27 | Cross-platform mobile UI framework |
+| Dart 3.6 | Programming language |
+| Google Gemini 2.0 Flash | LLM / NLP engine (free tier) |
+| go_router | Declarative navigation |
+| provider | State management |
+| flutter_animate | Premium micro-animations |
+| google_fonts | Typography (Inter + Noto Naskh Arabic) |
 
 ---
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-- [Node.js](https://nodejs.org) (v18 or newer)
-- [Expo Go](https://expo.dev/go) app on your phone
-- Both phone and PC on the same Wi-Fi network
+- [Flutter SDK](https://flutter.dev/docs/get-started/install) 3.27 or newer
+- Android Studio / Xcode, or a connected device
 
-### Installation
+### Run
 
 ```bash
 # 1. Clone the repository
 git clone https://github.com/tatheer583/Khidmat-App.git
-
-# 2. Navigate to the project
 cd Khidmat-App
 
-# 3. Install dependencies
-npm install
+# 2. Install dependencies
+flutter pub get
 
-# 4. Start the development server
-npx expo start --lan
+# 3. Run on a connected device / emulator
+flutter run
 ```
-
-Then scan the QR code with **Expo Go** on your phone.
 
 ---
 
-## 📦 Build APK (Android)
+## 🔑 Gemini API Key (Optional)
 
-To build a standalone APK for installation on any Android device:
+KHIDMAT works **out of the box** with built-in fallback responses — no key required.
+
+To enable enhanced Gemini-powered NLP:
+1. Get a **free** API key at [aistudio.google.com/apikey](https://aistudio.google.com/apikey)
+2. In the app: tap the **⋮ menu → Set API Key** → paste your key
+
+The app uses **`gemini-2.0-flash`**, which is available on Google's **free tier** (15 requests/min · 1,500 requests/day).
+
+---
+
+## 📦 Build
 
 ```bash
-# Install EAS CLI
-npm install -g eas-cli
+# Release APK (install directly on a device)
+flutter build apk --release
 
-# Login to your Expo account
-eas login
-
-# Build APK
-eas build --platform android --profile preview
+# Android App Bundle (for Google Play)
+flutter build appbundle --release
 ```
 
-Download the `.apk` from the link provided and install it on your phone.
+Outputs:
+- APK → `build/app/outputs/flutter-apk/app-release.apk`
+- AAB → `build/app/outputs/bundle/release/app-release.aab`
+
+Latest APK (pre-built): [release/app-release.apk](release/app-release.apk)
 
 ---
 
 ## 📁 Project Structure
 
 ```
-khidmat/
-├── app/                    # Expo Router screens
-│   ├── (tabs)/             # Tab screens (Chat, Services, Activity, Profile)
-│   ├── _layout.tsx         # Root layout
-│   ├── index.tsx           # Splash screen
-│   ├── negotiation.tsx     # Negotiation modal
-│   ├── booking-summary.tsx # Booking confirmation
-│   ├── agent-logs.tsx      # Agent activity logs
-│   └── ...
-├── src/
-│   ├── agents/             # AI agent logic (BHAROSA, MOL-BHAAV)
-│   ├── components/         # Reusable UI components (16 components)
-│   ├── constants/          # Colors, Typography, Spacing tokens
-│   ├── data/               # Mock providers, system prompts, market rates
-│   ├── hooks/              # useChatMessages, useAgentPipeline
-│   └── types/              # TypeScript type definitions
-├── assets/                 # Icons, splash screen
-├── app.json                # Expo config
-├── eas.json                # EAS Build config
-└── package.json
+Khidmat-App/
+├── lib/
+│   ├── main.dart            # App entry point
+│   ├── app.dart             # MaterialApp + GoRouter config
+│   ├── theme/               # Colors & Material 3 theme
+│   ├── models/              # Provider, ChatMessage, AgentLog models
+│   ├── data/                # Mock provider DB & market rates
+│   ├── agents/              # FAHAM, DHOOND, BHAROSA, MOL-BHAAV logic
+│   ├── services/            # Gemini service + AppState orchestrator
+│   ├── screens/             # 7 screens (splash → home → booking → logs)
+│   └── widgets/             # Reusable UI components
+├── android/                 # Android project
+├── ios/                     # iOS project
+├── test/                    # Widget tests
+├── release/                 # Pre-built APK artifacts
+└── pubspec.yaml
 ```
 
 ---
 
-## 🎨 Design System
+## 🎯 Hackathon — Challenge 2 Mapping
 
-Built on **Material Design 3** with a custom KHIDMAT identity:
-
-| Token | Color | Usage |
-|-------|-------|-------|
-| `primary` | `#005440` | CTAs, buttons, active states |
-| `primaryContainer` | `#0F6E56` | Headers, splash background |
-| `onPrimaryContainer` | `#9AEDCF` | Text on dark green |
-| `background` | `#FCF8FF` | App background |
-| `glassmorphism` | `rgba(255,255,255,0.75)` | Cards, tab bar |
-
----
-
-## 📸 App Screens
-
-| Screen | Description |
-|--------|-------------|
-| **Splash** | Animated KHIDMAT logo with Urdu text |
-| **Chat** | WhatsApp-style AI conversation |
-| **Services** | Browse available service categories |
-| **Activity** | Booking history and status |
-| **Profile** | User account and settings |
-
----
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create your feature branch: `git checkout -b feature/amazing-feature`
-3. Commit your changes: `git commit -m 'Add amazing feature'`
-4. Push to the branch: `git push origin feature/amazing-feature`
-5. Open a Pull Request
+| Requirement | Implementation |
+|-------------|----------------|
+| Intent understanding (Urdu/Roman Urdu/English) | **FAHAM** agent + Gemini |
+| Provider discovery | **DHOOND** agent over mock dataset |
+| Matching & ranking | **BHAROSA** trust-score ranking |
+| Decision & recommendation | Top-pick selection with explanation |
+| Action simulation (booking) | **BOOK** agent — receipt + confirmation |
+| Follow-up automation | **YAAD-DAHANI** agent |
+| Agentic workflow & traceable logs | Agent Logs screen — full reasoning trace |
 
 ---
 

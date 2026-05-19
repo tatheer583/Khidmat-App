@@ -1,0 +1,42 @@
+name: khidmat
+description: KHIDMAT — Agentic AI Service Orchestrator for Pakistan's Informal Economy
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.6.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # AI — Gemini Pro
+  google_generative_ai: ^0.4.3
+
+  # Navigation
+  go_router: ^14.2.7
+
+  # State Management
+  provider: ^6.1.2
+
+  # UI / Animations
+  flutter_animate: ^4.5.0
+  google_fonts: ^6.2.1
+  shimmer: ^3.0.0
+
+  # Utilities
+  intl: ^0.19.0
+  uuid: ^4.5.1
+  url_launcher: ^6.3.0
+  shared_preferences: ^2.3.3
+
+  # Icons
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
