@@ -3,16 +3,116 @@ import 'package:uuid/uuid.dart';
 import '../models/chat_message.dart';
 import '../models/provider_model.dart';
 import '../models/agent_log.dart';
+import '../models/provider_job.dart';
 import '../agents/faham_agent.dart';
 import '../agents/bharosa_agent.dart';
 import '../agents/molbhaav_agent.dart';
 import '../data/providers_data.dart';
+import '../data/provider_jobs_data.dart';
 import 'gemini_service.dart';
 
 enum PipelineStage { idle, parsing, searching, scoring, negotiating, booking, complete }
+enum UserRole { none, customer, provider }
+
+class ServiceRequest {
+  final String service;
+  final DateTime? date;
+  final TimeOfDay? time;
+  final int budgetMin;
+  final int budgetMax;
+  final String urgency;
+  final String notes;
+
+  const ServiceRequest({
+    required this.service,
+    this.date,
+    this.time,
+    required this.budgetMin,
+    required this.budgetMax,
+    required this.urgency,
+    required this.notes,
+  });
+}
 
 class AppState extends ChangeNotifier {
   final _uuid = const Uuid();
+
+  // ─── User Profile ───
+  String _userName = '';
+  String _userEmail = '';
+  String _userPhone = '';
+  String _userCity = 'Islamabad';
+
+  String get userName => _userName.isNotEmpty ? _userName : 'Guest';
+  String get userEmail => _userEmail;
+  String get userPhone => _userPhone;
+  String get userCity => _userCity;
+  String get userInitial => _userName.isNotEmpty ? _userName[0].toUpperCase() : 'G';
+
+  void setUserProfile({required String name, required String email, String phone = ''}) {
+    _userName = name;
+    _userEmail = email;
+    _userPhone = phone;
+    notifyListeners();
+  }
+
+  // ─── Service Request ───
+  ServiceRequest? _serviceRequest;
+  ServiceRequest? get serviceRequest => _serviceRequest;
+
+  // ─── Role ───
+  UserRole _role = UserRole.none;
+  UserRole get role => _role;
+  void setRole(UserRole r) {
+    _role = r;
+    if (r == UserRole.provider && _jobs.isEmpty) {
+      _jobs.addAll(seedJobs());
+      _earnings.addAll(seedEarnings());
+      _reviews.addAll(seedReviews());
+    }
+    notifyListeners();
+  }
+
+  // ─── Provider data ───
+  final List<ProviderJob> _jobs = [];
+  final List<EarningEntry> _earnings = [];
+  final List<ProviderReview> _reviews = [];
+  List<ProviderJob> get jobs => List.unmodifiable(_jobs);
+  List<ProviderJob> get incomingJobs =>
+      _jobs.where((j) => j.status == JobStatus.incoming).toList();
+  List<ProviderJob> get acceptedJobs => _jobs
+      .where((j) => j.status == JobStatus.accepted || j.status == JobStatus.inProgress)
+      .toList();
+  List<ProviderJob> get completedJobs =>
+      _jobs.where((j) => j.status == JobStatus.completed).toList();
+  List<EarningEntry> get earnings => List.unmodifiable(_earnings);
+  List<ProviderReview> get reviews => List.unmodifiable(_reviews);
+
+  int get totalEarnings => _earnings.fold(0, (a, e) => a + e.amount);
+  int get weekEarnings => _earnings
+      .where((e) => DateTime.now().difference(e.date).inDays < 7)
+      .fold(0, (a, e) => a + e.amount);
+  double get providerAvgRating => _reviews.isEmpty
+      ? 0
+      : _reviews.map((r) => r.rating).reduce((a, b) => a + b) / _reviews.length;
+
+  void updateJobStatus(String jobId, JobStatus status) {
+    final j = _jobs.firstWhere((j) => j.id == jobId);
+    j.status = status;
+    if (status == JobStatus.completed) {
+      _earnings.insert(
+        0,
+        EarningEntry(
+          jobId: j.id,
+          customerName: j.customerName,
+          service: j.service,
+          amount: j.quotedPrice,
+          date: DateTime.now(),
+        ),
+      );
+    }
+    notifyListeners();
+  }
 
   // ─── Chat ───
   final List<ChatMessage> messages = [];
@@ -34,6 +134,29 @@ class AppState extends ChangeNotifier {
   NegotiationResult? negotiationResult;
   BookingReceipt? currentBooking;
   String? geminiApiKey;
+
+  // Pipeline with full service request details
+  void startPipelineWithRequest({
+    required String query,
+    required String service,
+    DateTime? date,
+    TimeOfDay? time,
+    required int budgetMin,
+    required int budgetMax,
+    required String urgency,
+    required String notes,
+  }) {
+    _serviceRequest = ServiceRequest(
+      service: service,
+      date: date,
+      time: time,
+      budgetMin: budgetMin,
+      budgetMax: budgetMax,
+      urgency: urgency,
+      notes: notes,
+    );
+    startPipeline(query);
+  }
 
   // Pipeline-mode entry point (no chat messages — used by new search-based home)
   void startPipeline(String query) {

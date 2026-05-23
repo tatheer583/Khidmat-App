@@ -1,0 +1,116 @@
+import '../models/provider_job.dart';
+
+List<ProviderJob> seedJobs() => [
+      ProviderJob(
+        id: 'JR-8821',
+        customerName: 'Ayesha Khan',
+        customerInitial: 'A',
+        service: 'AC not cooling — gas refill suspected',
+        location: 'F-10/4, Islamabad',
+        distanceKm: '2.4 km',
+        requestedTime: 'Today, 3:00 PM',
+        urgency: 'HIGH',
+        quotedPrice: 2200,
+        notes: 'Split AC, 1.5 ton, Haier. Cooling stopped this morning.',
+        createdAt: DateTime.now().subtract(const Duration(minutes: 12)),
+      ),
+      ProviderJob(
+        id: 'JR-8820',
+        customerName: 'Imran Saeed',
+        customerInitial: 'I',
+        service: 'Window AC service & cleaning',
+        location: 'G-13/2, Islamabad',
+        distanceKm: '1.1 km',
+        requestedTime: 'Tomorrow, 11:00 AM',
+        urgency: 'MEDIUM',
+        quotedPrice: 1800,
+        notes: 'Annual service + filter clean.',
+        createdAt: DateTime.now().subtract(const Duration(hours: 1)),
+      ),
+      ProviderJob(
+        id: 'JR-8819',
+        customerName: 'Sana Tariq',
+        customerInitial: 'S',
+        service: 'AC installation — new unit',
+        location: 'E-11/3, Islamabad',
+        distanceKm: '4.8 km',
+        requestedTime: 'Sat, 22 May, 10:00 AM',
+        urgency: 'LOW',
+        quotedPrice: 3500,
+        notes: 'Brand new Gree 1 ton, need full install incl. bracket.',
+        createdAt: DateTime.now().subtract(const Duration(hours: 3)),
+      ),
+    ];
+
+List<EarningEntry> seedEarnings() => [
+      EarningEntry(
+        jobId: 'KH-8815',
+        customerName: 'Hassan Ali',
+        service: 'AC Service',
+        amount: 1800,
+        date: DateTime.now().subtract(const Duration(days: 1)),
+      ),
+      EarningEntry(
+        jobId: 'KH-8810',
+        customerName: 'Maryam Iqbal',
+        service: 'Gas Refill',
+        amount: 2500,
+        date: DateTime.now().subtract(const Duration(days: 2)),
+      ),
+      EarningEntry(
+        jobId: 'KH-8805',
+        customerName: 'Faisal Khan',
+        service: 'Compressor Repair',
+        amount: 4200,
+        date: DateTime.now().subtract(const Duration(days: 4)),
+      ),
+      EarningEntry(
+        jobId: 'KH-8798',
+        customerName: 'Bilal Hussain',
+        service: 'AC Installation',
+        amount: 3500,
+        date: DateTime.now().subtract(const Duration(days: 7)),
+      ),
+      EarningEntry(
+        jobId: 'KH-8790',
+        customerName: 'Saima Noor',
+        service: 'Diagnostic Visit',
+        amount: 800,
+        date: DateTime.now().subtract(const Duration(days: 9)),
+      ),
+    ];
+
+List<ProviderReview> seedReviews() => [
+      ProviderReview(
+        customerName: 'Hassan Ali',
+        customerInitial: 'H',
+        rating: 5.0,
+        comment: 'Bahut acha kaam kiya, time pe aye aur problem 30 minute mein theek kar di.',
+        service: 'AC Service',
+        date: DateTime.now().subtract(const Duration(days: 1)),
+      ),
+      ProviderReview(
+        customerName: 'Maryam Iqbal',
+        customerInitial: 'M',
+        rating: 4.5,
+        comment: 'Professional and clean work. Slight delay in arrival but fixed everything.',
+        service: 'Gas Refill',
+        date: DateTime.now().subtract(const Duration(days: 2)),
+      ),
+      ProviderReview(
+        customerName: 'Faisal Khan',
+        customerInitial: 'F',
+        rating: 5.0,
+        comment: 'Compressor change kiya, ab AC bilkul nayi jesa chal raha hai. Recommended!',
+        service: 'Compressor Repair',
+        date: DateTime.now().subtract(const Duration(days: 4)),
+      ),
+      ProviderReview(
+        customerName: 'Bilal Hussain',
+        customerInitial: 'B',
+        rating: 4.0,
+        comment: 'Good installation, neat wiring. Price thoda zyada laga lekin quality acha hai.',
+        service: 'AC Installation',
+        date: DateTime.now().subtract(const Duration(days: 7)),
+      ),
+    ];
