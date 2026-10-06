@@ -1,4 +1,4 @@
-name: Build Khidmat Android
+name: Verify Khidmat mobile and backend
 on:
   workflow_dispatch:
   push:
@@ -55,15 +55,67 @@ jobs:
       - name: Build installable APK
         run: |
           if [ -f config/supabase.json ]; then
-            flutter build apk --release --split-per-abi --dart-define-from-file=config/supabase.json
+            flutter build apk --release --no-pub --split-per-abi --dart-define-from-file=config/supabase.json
           else
-            flutter build apk --release --split-per-abi
+            flutter build apk --release --no-pub --split-per-abi --dart-define-from-file=config/app.public.json
           fi
       - uses: actions/upload-artifact@v4
         with:
           name: khidmat-live-apks
           path: build/app/outputs/flutter-apk/app-*-release.apk
           retention-days: 14
+      - name: Enable emulator acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Install and launch release build on Android
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          arch: x86_64
+          target: google_apis
+          disable-animations: true
+          script: python3 scripts/smoke_android.py build/app/outputs/flutter-apk/app-x86_64-release.apk
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: android-runtime-evidence
+          path: smoke-evidence/
+  ios:
+    runs-on: macos-15
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.6'
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - name: Compile for physical iOS (unsigned)
+        run: flutter build ios --release --no-codesign --no-pub --dart-define-from-file=config/app.public.json
+      - name: Compile simulator
+        run: flutter build ios --simulator --debug --no-pub --dart-define-from-file=config/app.public.json
+      - name: Install and launch iOS simulator
+        run: |
+          DEVICE=$(xcrun simctl list devices available -j | python3 -c 'import json,sys; print(next(d["udid"] for a in json.load(sys.stdin)["devices"].values() for d in a if d["name"].startswith("iPhone")))')
+          xcrun simctl boot "$DEVICE"
+          xcrun simctl bootstatus "$DEVICE" -b
+          xcrun simctl install "$DEVICE" build/ios/iphonesimulator/Runner.app
+          xcrun simctl launch "$DEVICE" com.khidmat.khidmat
+          sleep 25
+          mkdir -p ios-evidence
+          xcrun simctl io "$DEVICE" screenshot ios-evidence/startup.png
+          xcrun simctl spawn "$DEVICE" launchctl list | grep com.khidmat.khidmat
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ios-build-and-runtime-evidence
+          path: |
+            ios-evidence/
+            build/ios/iphoneos/Runner.app/
+          retention-days: 7
   backend:
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -75,5 +127,14 @@ jobs:
       - run: supabase start
       - run: supabase db reset
       - run: supabase test db
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --prefix supabase/tests/http --ignore-scripts
+      - name: Exercise Auth, Storage and Realtime over HTTP and WebSockets
+        run: |
+          mkdir -p .build-tools
+          supabase status -o json > .build-tools/supabase-status.json
+          node supabase/tests/http/integration.mjs .build-tools/supabase-status.json
       - if: always()
         run: supabase stop --no-backup

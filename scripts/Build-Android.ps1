@@ -1,8 +1,9 @@
 [CmdletBinding()]
 param(
-  [string]$ConfigFile = 'config/supabase.json',
+  [string]$ConfigFile = 'config/app.public.json',
   [switch]$AppBundle,
-  [switch]$SplitPerAbi
+  [switch]$SplitPerAbi,
+  [switch]$AllowUnconfigured
 )
 $ErrorActionPreference = 'Stop'
 if ($AppBundle -and $SplitPerAbi) {
@@ -32,7 +33,10 @@ try {
   if ($LASTEXITCODE -ne 0) { throw 'Flutter analysis failed.' }
   & $flutterPath --no-version-check test --no-pub
   if ($LASTEXITCODE -ne 0) { throw 'Flutter tests failed.' }
-  $arguments = @('build', $(if ($AppBundle) { 'appbundle' } else { 'apk' }), '--release')
+  $arguments = @('build', $(if ($AppBundle) { 'appbundle' } else { 'apk' }), '--release', '--no-pub')
+  if (!(Test-Path -LiteralPath (Join-Path $repoRoot 'android/key.properties'))) {
+    throw 'Release signing is missing. Create the private signing key before distributing this build.'
+  }
   if (!(Test-Path -LiteralPath $ConfigFile -PathType Leaf) -and
       [IO.Path]::IsPathRooted($ConfigFile)) { throw 'Supabase config file does not exist.' }
   if (Test-Path -LiteralPath $ConfigFile -PathType Leaf) {
@@ -49,6 +53,7 @@ try {
   }
   $arguments += ('--dart-define-from-file=' + $ConfigFile)
   } else {
+    if (!$AllowUnconfigured) { throw 'Missing Supabase configuration. Use -AllowUnconfigured only for an intentional setup build.' }
     Write-Output 'Building with first-launch Supabase connection setup.'
   }
   if ($SplitPerAbi) { $arguments += '--split-per-abi' }

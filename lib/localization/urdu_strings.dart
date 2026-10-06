@@ -1,4 +1,34 @@
 const Map<String, String> urduStrings = {
+  'Connecting to Khidmat…': 'خدمت سے رابطہ ہو رہا ہے…',
+  'Unable to connect': 'رابطہ نہیں ہو سکا',
+  'Khidmat services are not ready yet. The app owner needs to finish service setup. Please try again later.':
+      'خدمت کی سہولتیں ابھی تیار نہیں۔ ایپ کے مالک کو تنصیب مکمل کرنا ہوگی۔ کچھ دیر بعد دوبارہ کوشش کریں۔',
+  'Could not connect to Khidmat. Check your connection and try again.':
+      'خدمت سے رابطہ نہیں ہوا۔ اپنا انٹرنیٹ چیک کر کے دوبارہ کوشش کریں۔',
+  'Sign in is temporarily unavailable. Please try again.':
+      'لاگ اِن کی سہولت عارضی طور پر دستیاب نہیں۔ دوبارہ کوشش کریں۔',
+  'The connection took too long. Please try again.':
+      'رابطے میں زیادہ وقت لگ رہا ہے۔ دوبارہ کوشش کریں۔',
+  'Phone sign in is not available yet. Please use email.':
+      'فون سے لاگ اِن ابھی دستیاب نہیں۔ براہِ کرم ای میل استعمال کریں۔',
+  'Could not save or load this information. Please try again.':
+      'معلومات محفوظ یا لوڈ نہیں ہو سکیں۔ دوبارہ کوشش کریں۔',
+  'Could not upload or load the photo. Please try again.':
+      'تصویر اپ لوڈ یا لوڈ نہیں ہو سکی۔ دوبارہ کوشش کریں۔',
+  'Forgot password?': 'پاس ورڈ بھول گئے؟',
+  'Enter your password': 'اپنا پاس ورڈ لکھیں',
+  'Show password': 'پاس ورڈ دکھائیں',
+  'Hide password': 'پاس ورڈ چھپائیں',
+  'Choose a new password': 'نیا پاس ورڈ منتخب کریں',
+  'Confirm password': 'پاس ورڈ دوبارہ لکھیں',
+  'Passwords do not match': 'دونوں پاس ورڈ ایک جیسے نہیں',
+  'Save password': 'پاس ورڈ محفوظ کریں',
+  'Password updated.': 'پاس ورڈ تبدیل ہو گیا۔',
+  'If an account exists, a password reset link has been sent. Check your email.':
+      'اگر اکاؤنٹ موجود ہے تو پاس ورڈ تبدیل کرنے کا لنک بھیج دیا گیا ہے۔ اپنی ای میل چیک کریں۔',
+  'No times available on this date. Choose another day.':
+      'اس تاریخ کو کوئی وقت دستیاب نہیں۔ دوسرا دن منتخب کریں۔',
+  'Refresh available times': 'دستیاب اوقات دوبارہ دیکھیں',
   "Connect Khidmat": "خدمت سے رابطہ",
   "Welcome to Khidmat": "خدمت میں خوش آمدید",
   "Supabase project URL": "Supabase پروجیکٹ کا پتہ",

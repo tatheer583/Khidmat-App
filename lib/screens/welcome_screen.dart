@@ -18,6 +18,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   final _password = TextEditingController();
   bool _register = false;
   bool _busy = false;
+  bool _showPassword = false;
   String? _error;
   @override
   void dispose() {
@@ -40,6 +41,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
           email: _email.text.trim(),
           password: _password.text,
           data: {'full_name': _name.text.trim()},
+          emailRedirectTo: authRedirectUrl,
         );
         if (response.session == null && mounted) {
           showMessage(
@@ -52,6 +54,33 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         await auth.signInWithPassword(
           email: _email.text.trim(),
           password: _password.text,
+        );
+      }
+    } catch (e) {
+      if (mounted) setState(() => _error = describeError(e));
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _resetPassword() async {
+    if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(_email.text.trim())) {
+      setState(() => _error = 'Enter a valid email');
+      return;
+    }
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      await context.read<BackendSession>().client.auth.resetPasswordForEmail(
+        _email.text.trim(),
+        redirectTo: authRedirectUrl,
+      );
+      if (mounted) {
+        showMessage(
+          context,
+          'If an account exists, a password reset link has been sent. Check your email.',
         );
       }
     } catch (e) {
@@ -89,10 +118,23 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   ),
                   const SizedBox(height: 32),
                   ElevatedButton.icon(
-                    onPressed: _busy ? null : () => context.push('/otp'),
+                    onPressed:
+                        _busy ||
+                            context.watch<BackendSession>().phoneEnabled ==
+                                false
+                        ? null
+                        : () => context.push('/otp'),
                     icon: const Icon(Icons.phone_outlined),
                     label: const LocalizedText('Continue with phone'),
                   ),
+                  if (context.watch<BackendSession>().phoneEnabled == false)
+                    const Padding(
+                      padding: EdgeInsets.only(top: 12),
+                      child: LocalizedText(
+                        'Phone sign in is not available yet. Please use email.',
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
                   const SizedBox(height: 20),
                   const LocalizedText(
                     'Or use email',
@@ -141,7 +183,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   TextFormField(
                     errorBuilder: (context, error) => LocalizedText(error),
                     controller: _password,
-                    obscureText: true,
+                    obscureText: !_showPassword,
                     autofillHints: [
                       _register
                           ? AutofillHints.newPassword
@@ -150,11 +192,30 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     decoration: localizedDecoration(
                       context,
                       labelText: 'Password',
+                      suffixIcon: IconButton(
+                        tooltip: context.tr(
+                          _showPassword ? 'Hide password' : 'Show password',
+                        ),
+                        onPressed: () =>
+                            setState(() => _showPassword = !_showPassword),
+                        icon: Icon(
+                          _showPassword
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                        ),
+                      ),
                     ),
-                    validator: (v) => v == null || v.length < 8
+                    validator: (v) => v == null || v.isEmpty
+                        ? 'Enter your password'
+                        : _register && v.length < 8
                         ? 'Use at least 8 characters'
                         : null,
                   ),
+                  if (!_register)
+                    TextButton(
+                      onPressed: _busy ? null : _resetPassword,
+                      child: const LocalizedText('Forgot password?'),
+                    ),
                   if (_error != null)
                     Padding(
                       padding: const EdgeInsets.only(top: 16),

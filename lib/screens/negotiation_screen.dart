@@ -23,6 +23,28 @@ class _NegotiationScreenState extends State<NegotiationScreen> {
   final _notes = TextEditingController();
   DateTime _day = pakistanToday().add(const Duration(days: 1));
   String? _slot;
+  Future<List<String>>? _slots;
+  String? _providerId;
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final id = context.watch<AppState>().selectedProvider?.provider.id;
+    if (id != null && id != _providerId) {
+      _providerId = id;
+      _loadSlots();
+    }
+  }
+
+  void _loadSlots() {
+    _slot = null;
+    if (_providerId != null) {
+      _slots = context.read<AppState>().repository.availableSlots(
+        _providerId!,
+        _day,
+      );
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -107,7 +129,10 @@ class _NegotiationScreenState extends State<NegotiationScreen> {
                               ),
                             );
                             if (day != null && mounted) {
-                              setState(() => _day = day);
+                              setState(() {
+                                _day = day;
+                                _loadSlots();
+                              });
                             }
                           },
                     icon: const Icon(Icons.calendar_month),
@@ -116,24 +141,52 @@ class _NegotiationScreenState extends State<NegotiationScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  DropdownButtonFormField<String>(
-                    initialValue: _slot,
-                    decoration: localizedDecoration(
-                      context,
-                      labelText: 'Appointment time',
-                    ),
-                    items: provider.availableSlots
-                        .map(
-                          (slot) => DropdownMenuItem(
-                            value: slot,
-                            child: LocalizedText('$slot (Pakistan time)'),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: state.isProcessing
+                  FutureBuilder<List<String>>(
+                    future: _slots,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState != ConnectionState.done) {
+                        return const LinearProgressIndicator();
+                      }
+                      if (snapshot.hasError) {
+                        return Notice(
+                          describeError(snapshot.error!),
+                          retry: () => setState(_loadSlots),
+                        );
+                      }
+                      final slots = snapshot.data ?? [];
+                      if (slots.isEmpty) {
+                        return const Notice(
+                          'No times available on this date. Choose another day.',
+                        );
+                      }
+                      return DropdownButtonFormField<String>(
+                        key: ValueKey(_slots),
+                        initialValue: _slot,
+                        decoration: localizedDecoration(
+                          context,
+                          labelText: 'Appointment time',
+                        ),
+                        items: slots
+                            .map(
+                              (slot) => DropdownMenuItem(
+                                value: slot,
+                                child: LocalizedText('$slot (Pakistan time)'),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: state.isProcessing
+                            ? null
+                            : (value) => setState(() => _slot = value),
+                        validator: (v) =>
+                            v == null ? context.tr('Choose a time') : null,
+                      );
+                    },
+                  ),
+                  TextButton(
+                    onPressed: state.isProcessing
                         ? null
-                        : (value) => setState(() => _slot = value),
-                    validator: (v) => v == null ? 'Choose a time' : null,
+                        : () => setState(_loadSlots),
+                    child: const LocalizedText('Refresh available times'),
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
@@ -167,7 +220,9 @@ class _NegotiationScreenState extends State<NegotiationScreen> {
                   if (state.error != null) Notice(state.error!),
                   const SizedBox(height: 16),
                   ElevatedButton(
-                    onPressed: state.isProcessing ? null : _book,
+                    onPressed: state.isProcessing || _slot == null
+                        ? null
+                        : _book,
                     child: LocalizedText(
                       state.isProcessing ? 'Reserving…' : 'Request booking',
                     ),

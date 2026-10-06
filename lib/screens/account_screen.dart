@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../services/backend_session.dart';
 import '../services/khidmat_repository.dart';
 import '../widgets/live_ui.dart';
@@ -55,7 +56,7 @@ class _AccountScreenState extends State<AccountScreen> {
     String? uploaded;
     try {
       if (image != null) uploaded = await repository.uploadImage(image);
-      await session.client
+      final saved = await session.client
           .from('profiles')
           .update({
             'full_name': _name.text.trim(),
@@ -63,12 +64,14 @@ class _AccountScreenState extends State<AccountScreen> {
             'location': _address.text.trim(),
             'avatar_path': uploaded ?? _avatar,
           })
-          .eq('id', session.user!.id);
+          .eq('id', session.user!.id)
+          .select()
+          .single();
       if (uploaded != null) _avatar = uploaded;
-      await session.refreshProfile();
+      session.acceptProfile(saved);
       if (mounted) showMessage(context, 'Profile saved.');
     } catch (e) {
-      if (uploaded != null) {
+      if (uploaded != null && e is PostgrestException) {
         try {
           await session.client.storage.from('avatars').remove([uploaded]);
         } catch (_) {}

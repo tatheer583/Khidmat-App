@@ -23,6 +23,8 @@ import 'screens/account_screen.dart';
 import 'screens/provider_dashboard_screen.dart';
 import 'screens/agent_logs_screen.dart';
 import 'screens/help_screen.dart';
+import 'screens/connection_screen.dart';
+import 'screens/password_screen.dart';
 
 class KhidmatApp extends StatefulWidget {
   final BackendSession? session;
@@ -52,19 +54,48 @@ class _KhidmatAppState extends State<KhidmatApp> {
       refreshListenable: _session,
       redirect: (context, state) {
         final path = state.uri.path;
+        if (_session.initializing) {
+          return path == '/connection' ? null : '/connection';
+        }
         if (!_session.ready) return path == '/setup' ? null : '/setup';
+        if (!_session.serviceAvailable) {
+          return path == '/connection' ? null : '/connection';
+        }
         if (!_session.signedIn) {
           return path == '/welcome' || path == '/otp' ? null : '/welcome';
+        }
+        if (_session.recoveringPassword) {
+          return path == '/password' ? null : '/password';
+        }
+        if (_session.profile == null) {
+          return path == '/connection' ? null : '/connection';
         }
         if (!_session.profileComplete) {
           return path == '/onboarding' ? null : '/onboarding';
         }
         if (path == '/onboarding') return '/home';
         if (!_session.isWorker && path == '/provider') return '/home';
-        if (['/', '/setup', '/welcome', '/otp'].contains(path)) return '/home';
+        if ([
+          '/',
+          '/setup',
+          '/welcome',
+          '/otp',
+          '/connection',
+          '/password',
+        ].contains(path)) {
+          return '/home';
+        }
         return null;
       },
       routes: [
+        GoRoute(
+          path: '/connection',
+          builder: (_, state) => const ConnectionScreen(),
+        ),
+        GoRoute(
+          path: '/password',
+          builder: (_, state) => const PasswordScreen(),
+        ),
         GoRoute(path: '/', redirect: (_, state) => '/home'),
         GoRoute(path: '/setup', builder: (_, state) => const SetupScreen()),
         GoRoute(path: '/welcome', builder: (_, state) => const WelcomeScreen()),

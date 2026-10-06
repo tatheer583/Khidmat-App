@@ -18,7 +18,14 @@ class KhidmatRepository {
         .select()
         .eq('is_approved', true)
         .eq('is_available', true)
-        .ilike('city', city.trim());
+        .ilike(
+          'city',
+          city
+              .trim()
+              .replaceAll(r'\', r'\\')
+              .replaceAll('%', r'\%')
+              .replaceAll('_', r'\_'),
+        );
     if (category != 'General Service') query = query.eq('category', category);
     final rows = await query.order('rating', ascending: false).limit(100);
     return rows
@@ -56,6 +63,18 @@ class KhidmatRepository {
     );
     return LiveBooking(Map<String, dynamic>.from(row as Map));
   }
+
+  Future<List<String>> availableSlots(String providerId, DateTime day) async =>
+      List<String>.from(
+        await client.rpc(
+              'available_slots',
+              params: {
+                'p_provider_id': providerId,
+                'p_date': day.toIso8601String().split('T').first,
+              },
+            )
+            as List,
+      );
 
   Stream<List<Map<String, dynamic>>> bookings() => client
       .from('bookings')
@@ -164,8 +183,10 @@ class KhidmatRepository {
         'body': body.trim(),
         'attachment_path': path,
       });
-    } catch (_) {
-      if (path != null) {
+    } catch (error) {
+      // A lost response may follow a committed insert. Delete only after a
+      // definite database rejection, never after an ambiguous network failure.
+      if (path != null && error is PostgrestException) {
         try {
           await client.storage.from('booking-media').remove([path]);
         } catch (_) {}

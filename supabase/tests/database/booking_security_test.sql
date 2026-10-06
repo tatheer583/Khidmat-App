@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = public, extensions;
-select plan(33);
+select plan(40);
 -- Fixtures are rolled back. Production has no fictitious providers.
 insert into auth.users(id, email, raw_user_meta_data) values
   ('00000000-0000-4000-8000-000000000001','customer@example.test','{"full_name":"Customer"}'),
@@ -16,6 +16,12 @@ values ('00000000-0000-4000-8000-000000000020',
 create temporary table test_ids(label text primary key, id uuid);
 grant all on test_ids to authenticated;
 
+set local role anon;
+select is(public.app_health()->>'ready', 'true', 'Public readiness requires private storage and realtime');
+select throws_ok(
+  $$select public.available_slots('00000000-0000-4000-8000-000000000010',current_date)$$,
+  '42501',null,'Anonymous users cannot query schedules');
+reset role;
 set local role authenticated;
 set local "request.jwt.claim.sub" = '00000000-0000-4000-8000-000000000001';
 select is((select count(*)::integer from public.profiles),1,'Only own private profile is visible');
@@ -52,6 +58,12 @@ select throws_ok(
   $$select public.create_booking((select id from test_ids where label='other_quote'),
     (now() at time zone 'Asia/Karachi')::date+1,'09:00','House 13, Islamabad','')$$,
   'P0001','This time slot was just booked; choose another slot','Double booking is prevented');
+select is(public.available_slots('00000000-0000-4000-8000-000000000010',
+  (now() at time zone 'Asia/Karachi')::date+1), '["12:00","15:00","18:00"]'::jsonb,
+  'Availability hides reserved slots without exposing private bookings');
+select throws_ok(
+  $$select public.available_slots('00000000-0000-4000-8000-000000000020',current_date+1)$$,
+  'P0001','Provider is unavailable','Unapproved listings cannot expose availability');
 set local "request.jwt.claim.sub" = '00000000-0000-4000-8000-000000000003';
 select is((select count(*)::integer from public.bookings),0,'Unrelated user cannot read bookings');
 select throws_ok(
@@ -59,6 +71,12 @@ select throws_ok(
     values((select id from test_ids where label='booking'),auth.uid(),'Intrusion')$$,
   '42501',null,'Unrelated user cannot enter private chat');
 set local "request.jwt.claim.sub" = '00000000-0000-4000-8000-000000000002';
+select throws_ok(
+  $$update public.providers set available_slots=array['29:00'] where user_id=auth.uid()$$,
+  '23514',null,'Database rejects malformed appointment times');
+select throws_ok(
+  $$update public.providers set available_slots=array['09:00','09:00'] where user_id=auth.uid()$$,
+  '23514',null,'Database rejects duplicate appointment times');
 select lives_ok(
   $$select public.transition_booking((select id from test_ids where label='booking'),'accepted')$$,
   'Assigned provider can accept');
@@ -135,5 +153,8 @@ select throws_ok(
 select throws_ok(
   $$select public.complete_profile('Worker','worker','Islamabad','G-13','Plumber',61,'Plumbing repairs')$$,
   'P0001','Enter experience from 0 to 60 years','Invalid experience is rejected');
+update public.profiles set avatar_path=auth.uid()::text || '/new.jpg' where id=auth.uid();
+select is((select avatar_path from public.providers where user_id=auth.uid()),
+  auth.uid()::text || '/new.jpg','Account photo synchronizes to the worker listing');
 select * from finish();
 rollback;

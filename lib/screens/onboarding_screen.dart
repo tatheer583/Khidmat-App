@@ -64,7 +64,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     });
     final session = context.read<BackendSession>();
     try {
-      await session.client.rpc(
+      final saved = await session.client.rpc(
         'complete_profile',
         params: {
           'p_full_name': _name.text.trim(),
@@ -76,7 +76,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           'p_bio': _bio.text.trim(),
         },
       );
-      await session.refreshProfile();
+      session.acceptProfile(Map<String, dynamic>.from(saved as Map));
       if (session.profileComplete && mounted) context.go('/home');
     } catch (e) {
       if (mounted) setState(() => _error = describeError(e));

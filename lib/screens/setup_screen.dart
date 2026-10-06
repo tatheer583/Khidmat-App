@@ -86,11 +86,12 @@ class _SetupScreenState extends State<SetupScreen> {
               const LocalizedText(
                 'Never enter a service-role key, secret key or database password.',
               ),
-              if (_error != null)
+              if (_error != null ||
+                  context.watch<BackendSession>().error != null)
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   child: LocalizedText(
-                    _error!,
+                    _error ?? context.watch<BackendSession>().error!,
                     style: const TextStyle(color: Colors.redAccent),
                   ),
                 ),
