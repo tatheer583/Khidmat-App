@@ -1,217 +1,198 @@
+import '../localization/app_language.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
-import '../theme/app_colors.dart';
+import 'package:provider/provider.dart';
+import '../services/backend_session.dart';
+import '../widgets/live_ui.dart';
 
-class WelcomeScreen extends StatelessWidget {
+class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
-
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
-        children: [
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Color(0xFF0E0B0A), Color(0xFF0D0F12)],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                stops: [0.0, 0.6],
-              ),
-            ),
-          ),
-          SafeArea(
-            child: Column(
-              children: [
-                // Hero
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        width: 64,
-                        height: 64,
-                        decoration: BoxDecoration(
-                          gradient: AppColors.primaryGradient,
-                          borderRadius: BorderRadius.circular(18),
-                          boxShadow: const [
-                            BoxShadow(color: Color(0x40E06A4A), blurRadius: 24),
-                          ],
-                        ),
-                        alignment: Alignment.center,
-                        child: Text(
-                          'K',
-                          style: GoogleFonts.inter(
-                            color: const Color(0xFF1A0A05),
-                            fontSize: 40,
-                            fontWeight: FontWeight.w800,
-                            height: 1,
-                          ),
-                        ),
-                      )
-                          .animate()
-                          .scaleXY(begin: 0.8, end: 1.0, duration: 400.ms, curve: Curves.easeOut),
-
-                      const SizedBox(height: 28),
-
-                      Text(
-                        'Welcome to Khidmat',
-                        style: GoogleFonts.inter(
-                          color: AppColors.textPrimary,
-                          fontSize: 30,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: -0.6,
-                        ),
-                      ).animate().fadeIn(delay: 150.ms, duration: 400.ms).slideY(begin: 0.15, end: 0),
-
-                      const SizedBox(height: 10),
-
-                      Text(
-                        'خوش آمدید',
-                        style: GoogleFonts.notoNaskhArabic(
-                          color: AppColors.textSecondary,
-                          fontSize: 26,
-                          height: 1,
-                        ),
-                      ).animate().fadeIn(delay: 200.ms, duration: 400.ms),
-
-                      const SizedBox(height: 14),
-
-                      Text(
-                        'Find trusted help nearby —\nby voice, in your language.',
-                        style: GoogleFonts.inter(
-                          color: AppColors.textMuted,
-                          fontSize: 15,
-                          height: 1.5,
-                        ),
-                        textAlign: TextAlign.center,
-                      ).animate().fadeIn(delay: 250.ms, duration: 400.ms),
-                    ],
-                  ),
-                ),
-
-                // Buttons
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
-                  child: Column(
-                    children: [
-                      _Btn(
-                        label: 'Sign up with phone',
-                        primary: true,
-                        onTap: () => context.push('/otp'),
-                      ).animate().fadeIn(delay: 350.ms).slideY(begin: 0.15, end: 0),
-
-                      const SizedBox(height: 12),
-
-                      _Btn(
-                        label: 'Continue with Google',
-                        googleIcon: true,
-                        onTap: () => context.go('/home'),
-                      ).animate().fadeIn(delay: 400.ms).slideY(begin: 0.15, end: 0),
-
-                      const SizedBox(height: 12),
-
-                      _Btn(
-                        label: 'I already have an account',
-                        onTap: () => context.go('/home'),
-                      ).animate().fadeIn(delay: 450.ms).slideY(begin: 0.15, end: 0),
-
-                      const SizedBox(height: 10),
-
-                      RichText(
-                        textAlign: TextAlign.center,
-                        text: TextSpan(
-                          style: GoogleFonts.inter(color: AppColors.textMuted, fontSize: 12),
-                          children: [
-                            const TextSpan(text: 'By continuing you agree to our '),
-                            TextSpan(
-                              text: 'Terms',
-                              style: GoogleFonts.inter(
-                                color: AppColors.textSecondary,
-                                decoration: TextDecoration.underline,
-                                decorationColor: AppColors.textSecondary,
-                              ),
-                            ),
-                            const TextSpan(text: ' & '),
-                            TextSpan(
-                              text: 'Privacy',
-                              style: GoogleFonts.inter(
-                                color: AppColors.textSecondary,
-                                decoration: TextDecoration.underline,
-                                decorationColor: AppColors.textSecondary,
-                              ),
-                            ),
-                            const TextSpan(text: '.'),
-                          ],
-                        ),
-                      ).animate().fadeIn(delay: 500.ms),
-
-                      const SizedBox(height: 8),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  State<WelcomeScreen> createState() => _WelcomeScreenState();
 }
 
-class _Btn extends StatelessWidget {
-  final String label;
-  final bool primary;
-  final bool googleIcon;
-  final VoidCallback onTap;
+class _WelcomeScreenState extends State<WelcomeScreen> {
+  final _form = GlobalKey<FormState>();
+  final _name = TextEditingController();
+  final _email = TextEditingController();
+  final _password = TextEditingController();
+  bool _register = false;
+  bool _busy = false;
+  String? _error;
+  @override
+  void dispose() {
+    _name.dispose();
+    _email.dispose();
+    _password.dispose();
+    super.dispose();
+  }
 
-  const _Btn({
-    required this.label,
-    this.primary = false,
-    this.googleIcon = false,
-    required this.onTap,
-  });
+  Future<void> _submit() async {
+    if (!_form.currentState!.validate()) return;
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    final auth = context.read<BackendSession>().client.auth;
+    try {
+      if (_register) {
+        final response = await auth.signUp(
+          email: _email.text.trim(),
+          password: _password.text,
+          data: {'full_name': _name.text.trim()},
+        );
+        if (response.session == null && mounted) {
+          showMessage(
+            context,
+            'Check your email to confirm your account, then sign in.',
+          );
+          setState(() => _register = false);
+        }
+      } else {
+        await auth.signInWithPassword(
+          email: _email.text.trim(),
+          password: _password.text,
+        );
+      }
+    } catch (e) {
+      if (mounted) setState(() => _error = describeError(e));
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
 
   @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        height: 56,
-        decoration: BoxDecoration(
-          color: primary ? AppColors.accent : Colors.white.withValues(alpha: 0.04),
-          borderRadius: BorderRadius.circular(16),
-          border: primary ? null : Border.all(color: AppColors.line2),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (googleIcon) ...[
-              Container(
-                width: 22,
-                height: 22,
-                decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-                alignment: Alignment.center,
-                child: const Text(
-                  'G',
-                  style: TextStyle(color: Colors.black, fontSize: 13, fontWeight: FontWeight.w700),
-                ),
-              ),
-              const SizedBox(width: 10),
-            ],
-            Text(
-              label,
-              style: GoogleFonts.inter(
-                color: primary ? const Color(0xFF1A0A05) : AppColors.textPrimary,
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(actions: const [LanguageButton()]),
+    body: SafeArea(
+      child: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 440),
+            child: Form(
+              key: _form,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const Icon(Icons.handshake_outlined, size: 64),
+                  const SizedBox(height: 20),
+                  LocalizedText(
+                    'خدمت • Khidmat',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.headlineLarge,
+                  ),
+                  const SizedBox(height: 12),
+                  const LocalizedText(
+                    'Trusted help, in your language.',
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 32),
+                  ElevatedButton.icon(
+                    onPressed: _busy ? null : () => context.push('/otp'),
+                    icon: const Icon(Icons.phone_outlined),
+                    label: const LocalizedText('Continue with phone'),
+                  ),
+                  const SizedBox(height: 20),
+                  const LocalizedText(
+                    'Or use email',
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 20),
+                  LocalizedText(
+                    _register ? 'Create your account' : 'Sign in',
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                  const SizedBox(height: 20),
+                  if (_register) ...[
+                    TextFormField(
+                      errorBuilder: (context, error) => LocalizedText(error),
+                      controller: _name,
+                      maxLength: 100,
+                      decoration: localizedDecoration(
+                        context,
+                        labelText: 'Your name',
+                      ),
+                      validator: (v) => v == null || v.trim().length < 2
+                          ? 'Enter your name'
+                          : null,
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                  TextFormField(
+                    errorBuilder: (context, error) => LocalizedText(error),
+                    controller: _email,
+                    keyboardType: TextInputType.emailAddress,
+                    autocorrect: false,
+                    autofillHints: const [AutofillHints.email],
+                    decoration: localizedDecoration(
+                      context,
+                      labelText: 'Email',
+                    ),
+                    validator: (v) =>
+                        v == null ||
+                            !RegExp(
+                              r'^[^@\s]+@[^@\s]+\.[^@\s]+$',
+                            ).hasMatch(v.trim())
+                        ? 'Enter a valid email'
+                        : null,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    errorBuilder: (context, error) => LocalizedText(error),
+                    controller: _password,
+                    obscureText: true,
+                    autofillHints: [
+                      _register
+                          ? AutofillHints.newPassword
+                          : AutofillHints.password,
+                    ],
+                    decoration: localizedDecoration(
+                      context,
+                      labelText: 'Password',
+                    ),
+                    validator: (v) => v == null || v.length < 8
+                        ? 'Use at least 8 characters'
+                        : null,
+                  ),
+                  if (_error != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 16),
+                      child: LocalizedText(
+                        _error!,
+                        style: const TextStyle(color: Colors.redAccent),
+                      ),
+                    ),
+                  const SizedBox(height: 24),
+                  ElevatedButton(
+                    onPressed: _busy ? null : _submit,
+                    child: LocalizedText(
+                      _busy
+                          ? 'Please wait…'
+                          : _register
+                          ? 'Create account'
+                          : 'Sign in',
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: _busy
+                        ? null
+                        : () => setState(() {
+                            _register = !_register;
+                            _error = null;
+                          }),
+                    child: LocalizedText(
+                      _register
+                          ? 'Already registered? Sign in'
+                          : 'New here? Create an account',
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
+          ),
         ),
       ),
-    );
-  }
+    ),
+  );
 }

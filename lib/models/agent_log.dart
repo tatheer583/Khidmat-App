@@ -1,4 +1,5 @@
 enum AgentId { faham, dhoond, bharosa, molBhaav, book, yaadDahani }
+
 enum AgentStatus { running, complete, error }
 
 class AgentInfo {
@@ -9,7 +10,6 @@ class AgentInfo {
   final int colorValue;
   final int bgColorValue;
   final String icon;
-
   const AgentInfo({
     required this.id,
     required this.name,
@@ -102,7 +102,6 @@ class NegotiationRound {
   final int amount;
   final String action;
   final String? note;
-
   const NegotiationRound({
     required this.round,
     required this.actor,
@@ -125,7 +124,6 @@ class NegotiationResult {
   final String outcome;
   final bool movedToNext;
   final String explanation;
-
   const NegotiationResult({
     required this.providerName,
     required this.serviceType,

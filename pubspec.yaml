@@ -1,36 +1,26 @@
 name: khidmat
-description: KHIDMAT — Agentic AI Service Orchestrator for Pakistan's Informal Economy
+description: Khidmat service bookings with Supabase authentication, storage and realtime updates.
 publish_to: 'none'
-version: 1.0.0+1
+version: 1.1.0+2
 
 environment:
-  sdk: ^3.6.2
+  sdk: '>=3.8.0 <4.0.0'
+  flutter: '>=3.35.0'
 
 dependencies:
   flutter:
     sdk: flutter
-
-  # AI — Gemini Pro
-  google_generative_ai: ^0.4.3
-
-  # Navigation
+  flutter_localizations:
+    sdk: flutter
+  supabase_flutter: ^2.18.0
+  image_picker: ^1.2.0
   go_router: ^14.2.7
-
-  # State Management
   provider: ^6.1.2
-
-  # UI / Animations
   flutter_animate: ^4.5.0
-  google_fonts: ^6.2.1
-  shimmer: ^3.0.0
-
-  # Utilities
-  intl: ^0.19.0
+  intl: ^0.20.3
   uuid: ^4.5.1
   url_launcher: ^6.3.0
   shared_preferences: ^2.3.3
-
-  # Icons
   cupertino_icons: ^1.0.8
 
 dev_dependencies:

@@ -1,6 +1,7 @@
 import 'provider_model.dart';
 
 enum MessageType { user, agent, intentCard, receipt, system }
+
 enum UrgencyLevel { high, medium, low }
 
 class ParsedIntent {
@@ -11,7 +12,6 @@ class ParsedIntent {
   final int? budget;
   final String specialNotes;
   final String detectedLanguage;
-
   const ParsedIntent({
     required this.serviceType,
     required this.location,
@@ -31,7 +31,6 @@ class ChatMessage {
   final ParsedIntent? intent;
   final BookingReceipt? receipt;
   final bool isTyping;
-
   const ChatMessage({
     required this.id,
     required this.type,
@@ -48,7 +47,6 @@ class ChatMessage {
     text: text,
     timestamp: DateTime.now(),
   );
-
   factory ChatMessage.agent(String text) => ChatMessage(
     id: DateTime.now().millisecondsSinceEpoch.toString(),
     type: MessageType.agent,
@@ -62,7 +60,6 @@ class ChatMessage {
     isTyping: true,
     timestamp: DateTime.now(),
   );
-
   factory ChatMessage.intentCard(ParsedIntent intent) => ChatMessage(
     id: DateTime.now().millisecondsSinceEpoch.toString(),
     type: MessageType.intentCard,
@@ -76,7 +73,6 @@ class ChatMessage {
     receipt: receipt,
     timestamp: DateTime.now(),
   );
-
   factory ChatMessage.system(String text) => ChatMessage(
     id: DateTime.now().millisecondsSinceEpoch.toString(),
     type: MessageType.system,

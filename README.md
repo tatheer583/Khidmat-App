@@ -1,170 +1,172 @@
-<div align="center">
+# Khidmat — خدمت
 
-# خدمت — KHIDMAT
+Khidmat connects people in Pakistan with local workers for household services. The Flutter app uses Supabase for authentication, profiles, bookings, private photo storage and Realtime updates, with separate worker and work giver dashboards in English and Urdu.
 
-### *"Aapki khidmat mein, hamesha"*
-**Always at your service**
+**[Download the Android APK](https://github.com/tatheer583/Khidmat-App/raw/refs/heads/main/release/app-release.apk)** · Version 1.1.0 (build 2) · Android 7.0 or later · 54.8 MiB
 
-[![Flutter](https://img.shields.io/badge/Flutter-3.27-02569B?style=for-the-badge&logo=flutter&logoColor=white)](https://flutter.dev)
-[![Dart](https://img.shields.io/badge/Dart-3.6-0175C2?style=for-the-badge&logo=dart&logoColor=white)](https://dart.dev)
-[![Gemini](https://img.shields.io/badge/Google_Gemini-2.0_Flash-8E75B2?style=for-the-badge&logo=google&logoColor=white)](https://ai.google.dev)
-[![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
+**Deployment status:** the signed APK has been built and verified. The supplied Supabase project still needs its database setup applied, and phone OTP needs an enabled SMS provider. Complete the setup below before testing live accounts and bookings. Physical device and two-account Realtime testing remain pending. See [verification results](docs/VERIFICATION.md).
 
-</div>
+## Features
 
----
+- Phone number login with SMS OTP, or email/password registration and login; saved sessions.
+- Worker or work giver selection and required profile onboarding: name, city, address, profession, experience and work details.
+- Worker dashboard for service listings, availability and incoming jobs; work giver dashboard for discovering and booking services.
+- Public worker profiles with service details, experience, prices and verified customer reviews.
+- Persistent English/Urdu switching, translated controls and right-to-left Urdu layout.
+- Account editing and profile photo uploads.
+- Service matching from English, Roman Urdu and Urdu keywords across eight categories.
+- Server-priced quotes, booking requests, status updates and customer cancellation.
+- Realtime booking history, private chat and photo attachments.
+- One customer review per completed booking.
+- Database access policies, participant-only booking data, private storage and server-enforced pricing.
 
-## 📱 About KHIDMAT
+Each worker account supports one service listing. An operator approves listings in Supabase before customers can find them. Quotes expire after ten minutes, and duplicate requests or identical provider/date/time reservations are rejected. Payment is cash after service completion; additional work or materials must be agreed separately.
 
-**KHIDMAT** is an **Agentic AI Service Orchestrator** for Pakistan's informal economy, built for the **Google Antigravity Hackathon — Challenge 2**.
+## Supabase setup
 
-It automates the end-to-end lifecycle of a service request — from natural-language user intent to a confirmed booking with follow-up — connecting users with trusted local service providers (plumbers, electricians, AC technicians, tutors, beauticians and more) through a transparent multi-agent AI pipeline.
+1. Create or open your [Supabase project](https://supabase.com/dashboard). For the supplied project, follow [the activation guide](docs/ACTIVATE-SUPABASE.md).
+2. Open **SQL Editor** and run [supabase/setup.sql](supabase/setup.sql) once in a fresh project. It creates the tables, onboarding functions, booking operations, access policies, private storage buckets and Realtime publication entries. If the base migration was already applied, run only [the profile migration](supabase/migrations/202610060002_profiles_languages.sql).
+3. Enable email signup and configure confirmation email delivery under **Authentication**. Phone login also requires enabling phone authentication and configuring an [SMS provider](https://supabase.com/docs/guides/auth/phone-login).
+4. Copy the public configuration example:
 
-> **Not a listing app** — KHIDMAT demonstrates *agentic automation*: reasoning, decision-making, action simulation, and traceable workflow execution.
+   ```powershell
+   Copy-Item config/supabase.example.json config/supabase.json
+   ```
 
----
+5. Fill in your project URL and **publishable key**, or a legacy **anon** key:
 
-## ✨ Features
+   ```json
+   {
+     "SUPABASE_URL": "https://YOUR_PROJECT.supabase.co",
+     "SUPABASE_ANON_KEY": "YOUR_PUBLISHABLE_OR_ANON_KEY"
+   }
+   ```
 
-- 🤖 **6 AI Agents** working in a structured pipeline, end-to-end
-- 💬 **Natural Language Chat** — Urdu, Roman Urdu, English & code-switched input
-- 🔍 **Smart Provider Discovery** — filters by category, proximity & availability
-- 🛡️ **Trust Scoring (BHAROSA)** — verified completion data, not just star ratings
-- 💰 **Auto Negotiation (MOL-BHAAV)** — market-rate-aware price negotiation
-- 📋 **Booking Simulation** — digital receipt with booking ID & price breakdown
-- 🔔 **Follow-Up Automation** — reminders, status updates & rating prompts
-- 🧾 **Agent Trace Logs** — full reasoning & decision trace for every request
+The configuration file is excluded from Git. Use only public client credentials; a service-role or secret key must never be embedded in the app. The build script embeds this configuration when present. Without it, the app asks for the connection details on first launch. The downloadable APK already contains the supplied project's public connection details.
 
----
+The local [supabase/config.toml](supabase/config.toml) disables confirmation emails only for disposable local tests; it does not change hosted authentication settings.
 
-## 🤖 The Agentic Pipeline
+### Add your first worker
 
-| Agent | Urdu Name | Role |
-|-------|-----------|------|
-| **FAHAM** | فہم | Intent parsing — language detection + service/location/time/urgency extraction |
-| **DHOOND** | ڈھونڈ | Provider discovery — category & location matching |
-| **BHAROSA** | بھروسا | Trust scoring — `completion×0.4 + speed×0.3 + vouches×0.2 + rating×0.1` |
-| **MOL-BHAAV** | مول بھاؤ | Price negotiation — 2-round market-rate negotiation |
-| **BOOK** | بُک | Booking confirmation & receipt generation |
-| **YAAD-DAHANI** | یاد دہانی | Reminders & follow-up automation |
+Sign up in the app, select **Worker**, complete the profile and create a service listing. In Supabase **Table Editor → providers**, set that worker's `is_approved` to `true`. Customers in the same city can then discover the listing. App users cannot approve their own listings or change reputation scores. Production data is created by real accounts; there are no seeded demonstration providers.
 
-**Flow:** `Intent → Discovery → Trust → Negotiation → Booking → Follow-up`
+## Run and build
 
----
+The verified toolchain is Flutter **3.47.6**, Dart **3.13.5**, Java **17**, Android SDK **36** and NDK **28.2.13676358**.
 
-## 🛠️ Tech Stack
+Clone the repository:
 
-| Technology | Purpose |
-|-----------|---------|
-| Flutter 3.27 | Cross-platform mobile UI framework |
-| Dart 3.6 | Programming language |
-| Google Gemini 2.0 Flash | LLM / NLP engine (free tier) |
-| go_router | Declarative navigation |
-| provider | State management |
-| flutter_animate | Premium micro-animations |
-| google_fonts | Typography (Inter + Noto Naskh Arabic) |
-
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-- [Flutter SDK](https://flutter.dev/docs/get-started/install) 3.27 or newer
-- Android Studio / Xcode, or a connected device
-
-### Run
-
-```bash
-# 1. Clone the repository
+```powershell
 git clone https://github.com/tatheer583/Khidmat-App.git
 cd Khidmat-App
+```
 
-# 2. Install dependencies
+### Windows APK build
+
+Use PowerShell 7. Install the toolchain, configure Supabase as above, then build:
+
+```powershell
+.\scripts\Install-Toolchain.ps1
+.\scripts\Build-Android.ps1
+```
+
+The installer downloads tools into `.tools` and prompts for Android SDK license acceptance. The build script prepares Android, installs dependencies, runs analysis and Flutter tests, and produces **`release/khidmat-live.apk`**.
+
+For an Android App Bundle:
+
+```powershell
+.\scripts\Build-Android.ps1 -AppBundle
+```
+
+### Release signing
+
+The downloadable APK uses a release signing key retained privately by the project owner. Future updates to that APK must use the same key.
+
+For a new distribution, create a key before its first release:
+
+```powershell
+.\scripts\New-SigningKey.ps1
+.\scripts\Build-Android.ps1
+```
+
+Back up `config/khidmat-upload.jks`, `config/signing-password.txt` and `android/key.properties` privately. They are excluded from Git and source packages. Builds without a signing configuration use a development signing key.
+
+### Development
+
+With Flutter and Android tools on your PATH:
+
+```powershell
 flutter pub get
-
-# 3. Run on a connected device / emulator
-flutter run
+flutter run --dart-define-from-file=config/supabase.json
+flutter analyze
+flutter test
 ```
 
----
+## GitHub Actions
 
-## 🔑 Gemini API Key (Optional)
+[Build Khidmat Android](https://github.com/tatheer583/Khidmat-App/actions) runs on main-branch pushes, pull requests and manual dispatch. It analyzes the app, runs Flutter tests and uploads an installable APK as **khidmat-live-apk**. A separate job starts disposable local Supabase and runs the database security tests.
 
-KHIDMAT works **out of the box** with built-in fallback responses — no key required.
+Optional repository **variables** `SUPABASE_URL` and `SUPABASE_ANON_KEY` configure the CI app automatically. Otherwise, the app uses first-launch connection setup. CI APKs use a development signing key; use the project's private signing configuration for distribution updates.
 
-To enable enhanced Gemini-powered NLP:
-1. Get a **free** API key at [aistudio.google.com/apikey](https://aistudio.google.com/apikey)
-2. In the app: tap the **⋮ menu → Set API Key** → paste your key
+## Tests and live checks
 
-The app uses **`gemini-2.0-flash`**, which is available on Google's **free tier** (15 requests/min · 1,500 requests/day).
+Local validation passed:
 
----
+| Check | Result |
+| --- | --- |
+| Flutter analysis | No issues |
+| Flutter tests | 11 passed |
+| PostgreSQL/pgTAP assertions through PGlite | 33 passed |
+| Android release build | Successful |
+| APK signature | Android Signature Scheme v2 verified |
 
-## 📦 Build
+Database assertions cover profile permissions, onboarding validation, server pricing, duplicate reservations, booking transitions, private chat/storage and verified reviews.
 
-```bash
-# Release APK (install directly on a device)
-flutter build apk --release
+Run SQL tests without Docker:
 
-# Android App Bundle (for Google Play)
-flutter build appbundle --release
+```powershell
+cd supabase/tests/pglite
+npm ci
+npm test
 ```
 
-Outputs:
-- APK → `build/app/outputs/flutter-apk/app-release.apk`
-- AAB → `build/app/outputs/bundle/release/app-release.aab`
+The PGlite harness applies both actual migrations in PostgreSQL with minimal Auth and Storage schemas. Hosted authentication, HTTP Storage, Realtime delivery and concurrent transactions still need Supabase integration checks.
 
-Latest APK (pre-built): [release/app-release.apk](release/app-release.apk)
+With Supabase CLI and Docker installed, run from the repository root against a disposable local database:
 
----
-
-## 📁 Project Structure
-
-```
-Khidmat-App/
-├── lib/
-│   ├── main.dart            # App entry point
-│   ├── app.dart             # MaterialApp + GoRouter config
-│   ├── theme/               # Colors & Material 3 theme
-│   ├── models/              # Provider, ChatMessage, AgentLog models
-│   ├── data/                # Mock provider DB & market rates
-│   ├── agents/              # FAHAM, DHOOND, BHAROSA, MOL-BHAAV logic
-│   ├── services/            # Gemini service + AppState orchestrator
-│   ├── screens/             # 7 screens (splash → home → booking → logs)
-│   └── widgets/             # Reusable UI components
-├── android/                 # Android project
-├── ios/                     # iOS project
-├── test/                    # Widget tests
-├── release/                 # Pre-built APK artifacts
-└── pubspec.yaml
+```powershell
+supabase start
+supabase db reset
+supabase test db
 ```
 
----
+Before distribution, use two real accounts on separate devices:
 
-## 🎯 Hackathon — Challenge 2 Mapping
+1. Create and approve a worker listing in the customer's city.
+2. Switch each dashboard between English and Urdu; confirm saved preferences after restart.
+3. Request a booking as the customer and accept it as the worker.
+4. Verify status changes, chat and photo attachments arrive on the other device.
+5. Confirm unrelated accounts cannot access the booking or its photos.
+6. Complete the job and submit one customer review.
+7. Restart the app and confirm booking and conversation persistence.
+8. Request the same provider/date/time again and confirm the conflicting request fails.
 
-| Requirement | Implementation |
-|-------------|----------------|
-| Intent understanding (Urdu/Roman Urdu/English) | **FAHAM** agent + Gemini |
-| Provider discovery | **DHOOND** agent over mock dataset |
-| Matching & ranking | **BHAROSA** trust-score ranking |
-| Decision & recommendation | Top-pick selection with explanation |
-| Action simulation (booking) | **BOOK** agent — receipt + confirmation |
-| Follow-up automation | **YAAD-DAHANI** agent |
-| Agentic workflow & traceable logs | Agent Logs screen — full reasoning trace |
+## Project layout
 
----
+| Path | Purpose |
+| --- | --- |
+| [lib/screens](lib/screens) | Authentication, onboarding, dashboards, bookings and chat |
+| [lib/services](lib/services) | Supabase session, repository and app state |
+| [lib/localization](lib/localization) | Saved language preference and Urdu translations |
+| [supabase/migrations](supabase/migrations) | Database schema, functions and access policies |
+| [supabase/tests](supabase/tests) | Database security tests and PGlite harness |
+| [scripts](scripts) | Android toolchain, builds, signing and source packaging |
+| [docs](docs) | Hosted setup instructions and verification evidence |
 
-## 📄 License
+## Current scope
 
-This project is licensed under the MIT License.
+Realtime updates work while the app is open. Background push notifications, GPS tracking, voice recognition, generative AI, online payments and a standalone administrator dashboard are not implemented. Search uses local keyword matching. Provider approval uses the Supabase dashboard.
 
----
+Booking history displays the latest 100 bookings; chat displays the latest 200 messages. Android is the tested build target. Existing iOS scaffolding needs permissions, signing and device testing on macOS.
 
-<div align="center">
-
-Made with ❤️ for Pakistan 🇵🇰
-
-**KHIDMAT — خدمت**
-
-</div>
+References: [Supabase Dart client](https://supabase.com/docs/reference/dart/introduction) · [Flutter Android releases](https://docs.flutter.dev/deployment/android)

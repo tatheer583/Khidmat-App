@@ -1,0 +1,79 @@
+name: Build Khidmat Android
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.6'
+          channel: stable
+          cache: true
+      - name: Prepare Android project
+        shell: pwsh
+        run: ./scripts/Prepare-Android.ps1
+      - name: Install dependencies
+        run: flutter pub get
+      - name: Analyze
+        run: flutter analyze --no-fatal-infos
+      - name: Test
+        run: flutter test
+      - name: Write public app configuration
+        if: vars.SUPABASE_URL != '' && vars.SUPABASE_ANON_KEY != ''
+        env:
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
+        run: |
+          python3 - <<'PY'
+          import base64, json, os
+          from pathlib import Path
+          key = os.environ["SUPABASE_ANON_KEY"]
+          if not key.startswith("sb_publishable_"):
+              try:
+                  payload = key.split(".")[1]
+                  claims = json.loads(base64.urlsafe_b64decode(payload + "=" * (-len(payload) % 4)))
+                  assert claims.get("role") == "anon"
+              except Exception:
+                  raise SystemExit("Only publishable or anon keys may be embedded")
+          Path("config/supabase.json").write_text(json.dumps({
+              "SUPABASE_URL": os.environ["SUPABASE_URL"],
+              "SUPABASE_ANON_KEY": os.environ["SUPABASE_ANON_KEY"]
+          }))
+          PY
+      - name: Build installable APK
+        run: |
+          if [ -f config/supabase.json ]; then
+            flutter build apk --release --dart-define-from-file=config/supabase.json
+          else
+            flutter build apk --release
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: khidmat-live-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 14
+  backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - run: supabase start
+      - run: supabase db reset
+      - run: supabase test db
+      - if: always()
+        run: supabase stop --no-backup
