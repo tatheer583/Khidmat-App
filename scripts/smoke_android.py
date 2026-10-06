@@ -60,6 +60,7 @@ def wait_for_screen(name, language=None):
             "رابطہ نہیں ہو سکا" in xml
             or "خدمت کی تیاری مکمل نہیں ہوئی" in xml
             or "قابلِ اعتماد مقامی مدد" in xml
+            or "قابلِ اعتماد مدد" in xml  # Previous signed releases use this translation.
         )
         usable = english or urdu
         expected = language is None or has_label(xml, "English" if language == "ur" else "اردو")
