@@ -11,6 +11,6 @@ $installed = $health.StatusCode -eq 200 -and ($health.Content | ConvertFrom-Json
   DatabaseStorageRealtimeReady = $installed
   EmailEnabled = $auth.external.email
   PhoneEnabled = $auth.external.phone
-}
+} | Format-List | Out-String | Write-Output
 if (!$installed) { Write-Output 'Apply the missing migrations in docs/ACTIVATE-SUPABASE.md, then run this check again.'; exit 1 }
 if (!$auth.external.phone) { Write-Output 'Phone OTP needs an enabled SMS provider. Email sign-in remains available.' }
