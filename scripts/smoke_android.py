@@ -50,8 +50,16 @@ def wait_for_screen(name, language=None):
     deadline = time.monotonic() + 75
     while time.monotonic() < deadline:
         xml = hierarchy(name)
-        english = "Unable to connect" in xml or "Trusted help" in xml
-        urdu = "رابطہ نہیں ہو سکا" in xml or "قابلِ اعتماد مدد" in xml
+        english = (
+            "Unable to connect" in xml
+            or "Khidmat setup is not complete" in xml
+            or "Trusted local help" in xml
+        )
+        urdu = (
+            "رابطہ نہیں ہو سکا" in xml
+            or "خدمت کی تیاری مکمل نہیں ہوئی" in xml
+            or "قابلِ اعتماد مقامی مدد" in xml
+        )
         usable = english or urdu
         expected = language is None or has_label(xml, "English" if language == "ur" else "اردو")
         if usable and expected:
