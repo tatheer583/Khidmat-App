@@ -44,7 +44,7 @@ class ConnectionScreen extends StatelessWidget {
                         : needsOwnerSetup
                         ? 'Khidmat setup is not complete'
                         : showingProfileError
-                        ? 'Your profile could not be loaded'
+                        ? 'Your profile could not be loaded.'
                         : 'Unable to connect',
                     style: Theme.of(context).textTheme.headlineSmall,
                     textAlign: TextAlign.center,
