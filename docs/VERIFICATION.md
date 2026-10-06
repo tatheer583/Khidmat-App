@@ -10,7 +10,7 @@ Date: 2026-10-06
 - Role routing: unfinished profiles enter onboarding; workers see jobs and listing controls; work givers see service discovery.
 - English/Urdu switching, saved language preference, and Urdu right-to-left layout were checked in widget tests.
 - Both SQL migrations applied successfully in local PostgreSQL using PGlite.
-- GitHub Actions also passed Flutter analysis, all eleven app tests, the Android release build and all thirty-three database assertions against full disposable Supabase. Evidence: [workflow run for commit 49c2c13](https://github.com/tatheer583/Khidmat-App/actions/runs/37469884873).
+- GitHub Actions also passed Flutter analysis, all eleven app tests, the split Android release build and all thirty-three database assertions against full disposable Supabase. Evidence: [workflow run for commit 20f9a74](https://github.com/tatheer583/Khidmat-App/actions/runs/37490228919).
 - All thirty-three pgTAP assertions passed: booking restrictions, server pricing, duplicate reservations, private chat and images, worker profile persistence and experience validation.
 - Android SDK 36, build tools 36.0.0 and NDK 28.2.13676358 installed. The official command-line tools checksum was verified.
 - PowerShell build/package/signing scripts parsed without syntax errors.

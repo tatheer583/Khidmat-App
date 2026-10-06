@@ -131,7 +131,7 @@ Validation passed:
 | Android release build | Successful locally and in GitHub Actions |
 | APK signature | Android Signature Scheme v2 verified |
 
-[GitHub Actions verification](https://github.com/tatheer583/Khidmat-App/actions/runs/37469884873) completed successfully for the earlier app changes. The CI APKs are development-signed artifacts; the download links above are release-signed APKs.
+[GitHub Actions verification](https://github.com/tatheer583/Khidmat-App/actions/runs/37490228919) completed successfully for commit `20f9a74`. The CI APKs are development-signed artifacts; the download links above are release-signed APKs.
 
 Database assertions cover profile permissions, onboarding validation, server pricing, duplicate reservations, booking transitions, private chat/storage and verified reviews.
 
