@@ -54,6 +54,7 @@ def wait_for_screen(name, language=None):
             "Unable to connect" in xml
             or "Khidmat setup is not complete" in xml
             or "Trusted local help" in xml
+            or "Trusted help" in xml  # Previous signed releases use this label.
         )
         urdu = (
             "رابطہ نہیں ہو سکا" in xml
