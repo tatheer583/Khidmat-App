@@ -18,6 +18,8 @@ The migrations install profiles, providers, quotes, bookings, events, messages, 
 3. Under **Phone**, enable authentication and configure your SMS provider. It must support your users' destinations, including Pakistan. Provider credentials belong in Supabase, never the app.
 4. Request and verify a real OTP. Trial SMS accounts may restrict recipients; inspect the provider delivery logs if a code is missing.
 
+Open email confirmation and password-reset links on the same phone/app that requested them. The PKCE flow stores its verification state on that device.
+
 References: [native auth callbacks](https://supabase.com/docs/guides/auth/native-mobile-deep-linking?platform=flutter), [SMTP setup](https://supabase.com/docs/guides/auth/auth-smtp), [phone providers](https://supabase.com/docs/guides/auth/phone-login).
 
 ## 3. Check the connection

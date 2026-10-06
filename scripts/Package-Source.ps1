@@ -10,7 +10,7 @@ foreach ($relative in @('lib','android','ios','scripts','supabase','test','integ
   $source = Join-Path $repoRoot $relative
   if (Test-Path -LiteralPath $source -PathType Container) {
     foreach ($file in (Get-ChildItem -LiteralPath $source -File -Recurse | Where-Object {
-      $_.FullName -notmatch '[/\\](node_modules|\.temp|\.branches|\.gradle|\.kotlin|build|\.cxx|Pods|\.symlinks|ephemeral)[/\\]' -and
+      $_.FullName -notmatch '[/\\](node_modules|__pycache__|\.temp|\.branches|\.gradle|\.kotlin|build|\.cxx|Pods|\.symlinks|ephemeral)[/\\]' -and
       $_.Name -notmatch '^(key\.properties|local\.properties|Generated\.xcconfig|flutter_export_environment\.sh)$' -and $_.Extension -ne '.jks'
     })) {
       $fileRelative = [IO.Path]::GetRelativePath($repoRoot, $file.FullName)

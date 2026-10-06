@@ -1,0 +1,52 @@
+[
+  {
+    "file": "khidmat-arm64-v8a.apk",
+    "bytes": 19952339,
+    "sha256": "8d2ce31265bb23719df14d03b3eb623cf413ec6af2486626435442d6161e2ecc",
+    "versionCode": 5001,
+    "signerSha256": "7c680b76c6d8ba235ebc72b68b05038ecaddb0d38e7d776f977695db2cdacebd",
+    "nativeLibraries": [
+      "lib/arm64-v8a/libapp.so"
+    ],
+    "signatureVerified": true,
+    "alignment16KBVerified": true
+  },
+  {
+    "file": "khidmat-armeabi-v7a.apk",
+    "bytes": 17672349,
+    "sha256": "5b67c016c7fd74237ff271fe8c88861d6064345649dcc28bf4697c6b8f6d116e",
+    "versionCode": 5001,
+    "signerSha256": "7c680b76c6d8ba235ebc72b68b05038ecaddb0d38e7d776f977695db2cdacebd",
+    "nativeLibraries": [
+      "lib/armeabi-v7a/libapp.so"
+    ],
+    "signatureVerified": true,
+    "alignment16KBVerified": true
+  },
+  {
+    "file": "khidmat-x86_64.apk",
+    "bytes": 21452498,
+    "sha256": "b10bb12b92f29ea62157f98496cc2b9b6b8fdd8f28b66b59d4a14631566a1e0c",
+    "versionCode": 5001,
+    "signerSha256": "7c680b76c6d8ba235ebc72b68b05038ecaddb0d38e7d776f977695db2cdacebd",
+    "nativeLibraries": [
+      "lib/x86_64/libapp.so"
+    ],
+    "signatureVerified": true,
+    "alignment16KBVerified": true
+  },
+  {
+    "file": "khidmat-universal.apk",
+    "bytes": 57432232,
+    "sha256": "f5aa990c598e1ca5edb275a3c24381d07c8fab6bd9bb46ccfe5b89c8d6290e7e",
+    "versionCode": 5001,
+    "signerSha256": "7c680b76c6d8ba235ebc72b68b05038ecaddb0d38e7d776f977695db2cdacebd",
+    "nativeLibraries": [
+      "lib/arm64-v8a/libapp.so",
+      "lib/armeabi-v7a/libapp.so",
+      "lib/x86_64/libapp.so"
+    ],
+    "signatureVerified": true,
+    "alignment16KBVerified": true
+  }
+]
