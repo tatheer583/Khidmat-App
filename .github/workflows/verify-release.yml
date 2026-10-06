@@ -1,0 +1,63 @@
+name: Verify downloadable Android release
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to verify
+        required: true
+        default: v1.3.0
+permissions:
+  contents: read
+jobs:
+  install-release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        api: [24, 35]
+    env:
+      RELEASE_TAG: ${{ github.event.release.tag_name || inputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download complete release files and verify checksums
+        run: |
+          mkdir -p downloaded
+          cd downloaded
+          BASE="https://github.com/tatheer583/Khidmat-App/releases/download/$RELEASE_TAG"
+          for FILE in khidmat-universal.apk khidmat-x86_64.apk SHA256SUMS; do
+            curl --fail --location --retry 3 "$BASE/$FILE" -o "$FILE"
+          done
+          sha256sum --check --ignore-missing SHA256SUMS
+          curl --fail --location --retry 3 "https://raw.githubusercontent.com/tatheer583/Khidmat-App/aa5f31387e187c044849c3fff929ff4d87936164/release/khidmat-x86_64.apk" -o previous.apk
+      - name: Verify retained release signing certificate
+        run: |
+          SIGNER=$(find "$ANDROID_HOME/build-tools" -name apksigner | sort -V | tail -1)
+          for APK in downloaded/*.apk; do
+            "$SIGNER" verify --print-certs "$APK" | grep '7c680b76c6d8ba235ebc72b68b05038ecaddb0d38e7d776f977695db2cdacebd'
+          done
+      - name: Enable emulator acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api }}
+          arch: x86_64
+          target: google_apis
+          disable-animations: true
+          script: |
+            adb install downloaded/previous.apk
+            python3 scripts/smoke_android.py downloaded/khidmat-x86_64.apk
+            adb install -r downloaded/khidmat-universal.apk
+            adb shell am force-stop com.khidmat.khidmat
+            adb shell am start -W -n com.khidmat.khidmat/.MainActivity
+            adb shell dumpsys package com.khidmat.khidmat | grep 'versionCode=5001 '
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: release-install-api-${{ matrix.api }}
+          path: smoke-evidence/
