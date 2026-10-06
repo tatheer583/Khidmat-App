@@ -34,7 +34,11 @@ The release APKs were built locally from the checked application code using `con
 
 The earlier split APKs used architecture-dependent version codes, which could prevent switching to a universal APK during an update. Build 5001 removes that mismatch. The retained release certificate supports updates from the previous Khidmat-signed release. The original prototype used a different Android Debug certificate and must be uninstalled once if Android reports a signature conflict.
 
-[The public-release verification workflow](https://github.com/tatheer583/Khidmat-App/actions/workflows/verify-release.yml) downloads all four APKs, verifies hashes and ZIP contents, checks signatures, and tests upgrades from the old signed x86 APK to the new split and universal APKs on Android API 24 and 35. Language preferences must survive both updates. Its results become available after publication; this source package was prepared before those public-download checks finished.
+[The public-release verification run](https://github.com/tatheer583/Khidmat-App/actions/runs/37509777306) **passed on both Android API 24 and 35**. Each job downloaded all four published APKs and verified hashes, ZIP completeness, signatures, build 5001, minimum SDK and 16 KB alignment. Each emulator installed/launched the old signed build 4003, upgraded to the signed build 5001 x86 APK, and then installed the universal APK over that build. All six runtime checks passed, including visible UI, English/Urdu switching and restarts. Urdu preferences survived both upgrades on each Android version.
+
+Independent anonymous downloads on Windows also returned HTTP 200 for all four APKs, with the correct APK content type and download filenames. Exact byte counts, SHA-256 hashes and full ZIP CRC checks matched the local signed files. The public source archive and checksum/metadata files were downloaded and verified too.
+
+The API 24 and 35 screenshots show a usable connection/retry screen in both languages. The supplied backend is still awaiting activation; installation success does not establish successful hosted login or booking. The initial public-release test setup requested a removed Android SDK package and failed before testing any APK. The corrected workflow explicitly installs available platform tools; the successful run above uses that correction.
 
 ## Supplied hosted project
 

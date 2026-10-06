@@ -11,3 +11,5 @@ Changes include visible startup progress and recovery, bounded network requests,
 Android requires 7.0 or later. iOS source and simulator/device build checks are included; physical iPhone distribution still requires your Apple signing team and provisioning. An APK does not install on iOS.
 
 `SHA256SUMS` and `artifacts.json` record the release file hashes and package checks. [Verification evidence](https://github.com/tatheer583/Khidmat-App/blob/main/docs/VERIFICATION.md) distinguishes emulator checks, disposable-backend tests and pending hosted/device activation.
+
+The [published-download verification](https://github.com/tatheer583/Khidmat-App/actions/runs/37509777306) passed all four APK checks and actual installation/upgrades on Android 7 and Android 15. Saved Urdu preferences survived upgrades from the previous signed release to the new split APK and then to the universal APK. The [application/backend workflow](https://github.com/tatheer583/Khidmat-App/actions/runs/37507029594) also passed, including iOS compilation/simulator launch and real backend protocol tests on a disposable Supabase stack.

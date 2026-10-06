@@ -84,6 +84,8 @@ Upload the signed archive using Xcode Organizer or Transporter. No Apple signing
 
 [Verification record](docs/VERIFICATION.md) distinguishes builds, emulator checks, disposable-backend tests and the hosted project.
 
+The [application/backend checks](https://github.com/tatheer583/Khidmat-App/actions/runs/37507029594) passed analysis, 16 app tests, 40 database assertions, 17 HTTP/WebSocket checks and the actual Flutter repository integration test. The [signed public-download checks](https://github.com/tatheer583/Khidmat-App/actions/runs/37509777306) passed installation and retained-language upgrades on Android 7 and Android 15. These backend tests use a disposable stack; activate the supplied hosted project before live use.
+
 - Flutter tests cover matching, phone normalization, role routing, Urdu, startup failures and password recovery routing.
 - After `npm ci` in `supabase/tests/pglite`, `node run.mjs` executes 40 database assertions.
 - CI starts a disposable Supabase stack and exercises real Auth, REST, Storage and Realtime WebSockets with separate accounts. These tests refuse production URLs.
@@ -93,5 +95,7 @@ Upload the signed archive using Xcode Organizer or Transporter. No Apple signing
 Before inviting customers, use two real phones/accounts: confirm registration, complete both roles, approve a listing, book, receive/accept the job, exchange text/photos, restart both apps, complete the work and leave a review. Also test connectivity failure/recovery. Hosted SMS delivery and physical-phone compatibility require these real device checks.
 
 ## Source
+
+Download the [complete Android/iOS source package](https://github.com/tatheer583/Khidmat-App/releases/download/v1.3.0/Khidmat-Supabase-source.zip), or clone this repository. The source package includes the corrected verification workflow and activation instructions; private signing files are excluded.
 
 `lib/` app; `android/` and `ios/` native projects; `supabase/migrations/` schema; `supabase/tests/` security/API tests; `scripts/` build/verification; `docs/` activation and evidence.
