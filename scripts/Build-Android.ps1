@@ -1,9 +1,13 @@
 [CmdletBinding()]
 param(
   [string]$ConfigFile = 'config/supabase.json',
-  [switch]$AppBundle
+  [switch]$AppBundle,
+  [switch]$SplitPerAbi
 )
 $ErrorActionPreference = 'Stop'
+if ($AppBundle -and $SplitPerAbi) {
+  throw 'Choose either -AppBundle or -SplitPerAbi.'
+}
 $repoRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $taskTools = Join-Path $repoRoot '.tools'
 if (Test-Path -LiteralPath $taskTools) {
@@ -24,9 +28,9 @@ Push-Location $repoRoot
 try {
   & $flutterPath --no-version-check pub get
   if ($LASTEXITCODE -ne 0) { throw 'Dependency installation failed.' }
-  & $flutterPath --no-version-check analyze --no-fatal-infos
+  & $flutterPath --no-version-check analyze --no-pub --no-fatal-infos
   if ($LASTEXITCODE -ne 0) { throw 'Flutter analysis failed.' }
-  & $flutterPath --no-version-check test
+  & $flutterPath --no-version-check test --no-pub
   if ($LASTEXITCODE -ne 0) { throw 'Flutter tests failed.' }
   $arguments = @('build', $(if ($AppBundle) { 'appbundle' } else { 'apk' }), '--release')
   if (!(Test-Path -LiteralPath $ConfigFile -PathType Leaf) -and
@@ -42,19 +46,38 @@ try {
         $claims = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($payload)) | ConvertFrom-Json
         if ($claims.role -ne 'anon') { throw 'Invalid app key role' }
       } catch { throw 'Only a publishable or legacy anon key can be embedded in the APK.' }
-    }
-    $arguments += ('--dart-define-from-file=' + $ConfigFile)
+  }
+  $arguments += ('--dart-define-from-file=' + $ConfigFile)
   } else {
     Write-Output 'Building with first-launch Supabase connection setup.'
   }
+  if ($SplitPerAbi) { $arguments += '--split-per-abi' }
   & $flutterPath --no-version-check @arguments
   if ($LASTEXITCODE -ne 0) { throw 'Android build failed.' }
-  $relativeArtifact = if ($AppBundle) { 'build/app/outputs/bundle/release/app-release.aab' }
-    else { 'build/app/outputs/flutter-apk/app-release.apk' }
   $releaseRoot = Join-Path $repoRoot 'release'
   [IO.Directory]::CreateDirectory($releaseRoot) | Out-Null
-  $destination = Join-Path $releaseRoot $(if ($AppBundle) { 'khidmat-live.aab' } else { 'khidmat-live.apk' })
-  Copy-Item -LiteralPath (Join-Path $repoRoot $relativeArtifact) -Destination $destination -Force
-  Get-FileHash -LiteralPath $destination -Algorithm SHA256
-  Write-Output ('Built: ' + $destination)
+  if ($AppBundle) {
+    $destination = Join-Path $releaseRoot 'khidmat-live.aab'
+    Copy-Item -LiteralPath (Join-Path $repoRoot 'build/app/outputs/bundle/release/app-release.aab') -Destination $destination -Force
+    Get-FileHash -LiteralPath $destination -Algorithm SHA256
+    Write-Output ('Built: ' + $destination)
+  } elseif ($SplitPerAbi) {
+    $abiArtifacts = @{
+      'arm64-v8a' = 'app-arm64-v8a-release.apk'
+      'armeabi-v7a' = 'app-armeabi-v7a-release.apk'
+      'x86_64' = 'app-x86_64-release.apk'
+    }
+    foreach ($abi in $abiArtifacts.Keys) {
+      $destination = Join-Path $releaseRoot ('khidmat-' + $abi + '.apk')
+      Copy-Item -LiteralPath (Join-Path $repoRoot ('build/app/outputs/flutter-apk/' + $abiArtifacts[$abi])) -Destination $destination -Force
+      Get-FileHash -LiteralPath $destination -Algorithm SHA256
+      Write-Output ('Built: ' + $destination)
+    }
+    Write-Output 'Install khidmat-arm64-v8a.apk on most modern Android phones. Use khidmat-armeabi-v7a.apk for older 32-bit phones.'
+  } else {
+    $destination = Join-Path $releaseRoot 'khidmat-live.apk'
+    Copy-Item -LiteralPath (Join-Path $repoRoot 'build/app/outputs/flutter-apk/app-release.apk') -Destination $destination -Force
+    Get-FileHash -LiteralPath $destination -Algorithm SHA256
+    Write-Output ('Built: ' + $destination)
+  }
 } finally { Pop-Location }

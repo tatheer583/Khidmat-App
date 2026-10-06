@@ -3,7 +3,8 @@
     <application
         android:label="Khidmat"
         android:name="${applicationName}"
-        android:icon="@drawable/khidmat_icon">
+        android:icon="@drawable/khidmat_icon"
+        android:usesCleartextTraffic="false">
         <activity
             android:name=".MainActivity"
             android:exported="true"

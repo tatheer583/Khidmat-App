@@ -15,6 +15,7 @@ Date: 2026-10-06
 - Android SDK 36, build tools 36.0.0 and NDK 28.2.13676358 installed. The official command-line tools checksum was verified.
 - PowerShell build/package/signing scripts parsed without syntax errors.
 - A private RSA signing key is saved locally and excluded from source packages.
+- The split APK build completed for arm64-v8a (19,951,747 bytes), armeabi-v7a (17,655,373 bytes) and x86_64 (21,451,910 bytes). Each package contains only its target native ABI and verifies with APK Signature Scheme v2.
 
 ## Hosted project
 
@@ -26,13 +27,16 @@ Run supabase/setup.sql once in the project SQL Editor, or apply the two migratio
 
 ## Android artifact
 
-- Built release/khidmat-live.apk successfully (57,415,252 bytes; 54.8 MiB).
+- Built release/khidmat-live.apk successfully (54.8 MiB universal fallback) and release/khidmat-arm64-v8a.apk (19.0 MiB recommended phone download).
 - APK Signature Scheme v2 verified by Android apksigner.
 - Release signer: CN=Khidmat, O=Khidmat, C=PK; RSA 2048.
-- Application ID: com.khidmat.khidmat; version 1.1.0, build 2.
-- Minimum Android API 24; target API 36; arm64-v8a, armeabi-v7a and x86_64 included.
+- Application ID: com.khidmat.khidmat; version 1.2.0, build 3.
+- Minimum Android API 24; target API 36. The universal fallback includes arm64-v8a, armeabi-v7a and x86_64; split downloads contain one ABI each.
 - Both the supplied project URL and publishable key were found in the compiled arm64 application library.
-- SHA256: 9b8155c01c8d520a5d021332bbfa167a9b29641afbf59a1ac564c9a939f2ae0f.
+- Universal APK SHA256: ae691d9c77cf35226e17536c57bee00d117f9a1a129297092f2d971f399f269f.
+- Current split APK checksums are stored beside each download in `release/*.sha256`.
+
+The original prototype APK used the Android Debug certificate. Because Android protects installed packages from certificate changes, uninstall the old prototype once before installing version 1.2.0. Future updates built with the retained Khidmat release key can update in place.
 
 The first native build failed because Kotlin incremental caches tried to relativize plugin source files on drive A against the project on drive C. Incremental Kotlin compilation is disabled and the compiler runs in-process. The subsequent release build succeeded. Prepare-Android.ps1 preserves this configuration on Windows.
 
