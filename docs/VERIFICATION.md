@@ -2,11 +2,11 @@
 
 Date: 2026-10-07. Application: Khidmat 1.4.0, Android build 5002.
 
-This update refreshes the Khidmat logo, welcome screen and connection/setup recovery in English and Urdu, and removes unused Flutter dependencies. The Android release APK is built and locally verified. The GitHub Android/iOS/backend and published-release emulator workflows must finish successfully before their results are claimed below.
+This update refreshes the Khidmat logo, welcome screen and connection/setup recovery in English and Urdu, and removes unused Flutter dependencies. The release APK and published download both passed signature, checksum and Android emulator installation checks.
 
 ## Application and backend checks
 
-[The previous application workflow](https://github.com/tatheer583/Khidmat-App/actions/runs/37507029594) passed for the 1.3.0 app baseline, commit `da5c6e2`. The 1.4.0 changes require a fresh GitHub workflow run; its Android, iOS and backend results are pending.
+[The 1.4.0 application workflow](https://github.com/tatheer583/Khidmat-App/actions/runs/37520978422) passed for commit `127cd28`.
 
 - Flutter 3.47.6 / Dart 3.13.5 analysis passed without issues. All 16 application tests passed, including startup recovery, bounded HTTP requests, role routing and English/Urdu behavior.
 - All three database migrations applied to a disposable full Supabase stack. All 40 pgTAP assertions passed, covering pricing, booking authorization, duplicate reservations, date availability, private data, profiles and readiness.
@@ -33,11 +33,11 @@ The universal APK was built locally from the application code using `config/app.
 
 This release keeps the same version code across its universal package and retains the Khidmat release certificate, so prior Khidmat-signed versions can update. The original prototype used a different Android Debug certificate and must be uninstalled once if Android reports a signature conflict.
 
-[The previous public-release verification run](https://github.com/tatheer583/Khidmat-App/actions/runs/37509777306) passed on Android API 24 and 35 for version 1.3.0. The version 1.4.0 public-download and install workflow is pending publication; no emulator result is claimed for it yet.
+[The 1.4.0 public-release verification run](https://github.com/tatheer583/Khidmat-App/actions/runs/37520992168) passed on Android API 24 and 35. Both jobs downloaded the published APK, verified its SHA-256, signature, version and alignment, then installed and launched it. The test switched English/Urdu and confirmed Urdu persisted during an update from the prior Khidmat-signed build.
 
-The 1.4.0 package has passed local signature, package/version and 16 KB alignment checks. Public download and emulator installation checks remain pending.
+An independent download of the public APK returned the exact published file size and SHA-256 recorded in `release/artifacts.json`.
 
-The previous API 24 and 35 screenshots show the 1.3.0 connection/retry screen in both languages. The supplied backend is still awaiting activation; installation success does not establish successful hosted login or booking. The corrected workflow explicitly installs available platform tools.
+The API 24 and 35 evidence includes the clear setup/retry screen shown in English and Urdu. The supplied backend is still awaiting activation; installation success does not establish successful hosted login or booking. The release workflow explicitly installs available platform tools.
 
 ## Supplied hosted project
 
