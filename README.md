@@ -110,15 +110,18 @@ Optional repository **variables** `SUPABASE_URL` and `SUPABASE_ANON_KEY` configu
 
 ## Tests and live checks
 
-Local validation passed:
+Validation passed:
 
 | Check | Result |
 | --- | --- |
 | Flutter analysis | No issues |
 | Flutter tests | 11 passed |
 | PostgreSQL/pgTAP assertions through PGlite | 33 passed |
-| Android release build | Successful |
+| Full local Supabase database tests in GitHub Actions | 33 passed |
+| Android release build | Successful locally and in GitHub Actions |
 | APK signature | Android Signature Scheme v2 verified |
+
+[GitHub Actions verification](https://github.com/tatheer583/Khidmat-App/actions/runs/37469884873) completed successfully for the app changes in commit 49c2c13. The CI APK is a development-signed artifact; the download above is the separately verified release-signed APK.
 
 Database assertions cover profile permissions, onboarding validation, server pricing, duplicate reservations, booking transitions, private chat/storage and verified reviews.
 
