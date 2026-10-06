@@ -40,18 +40,24 @@ async function nextChange(client, table, filter, event = 'INSERT') {
   const result = new Promise((resolve, reject) => { resolveChange = resolve; rejectChange = reject; });
   // Attach immediately so a subscription timeout cannot become unhandled.
   result.catch(() => {});
-  const timer = setTimeout(() => rejectChange(new Error('Realtime delivery timed out: ' + table)), 20000);
-  const channel = client.channel('test-' + randomUUID()).on('postgres_changes', {
+  let timer;
+  const channel = client.channel('test-' + randomUUID(), {
+    config: { postgres_changes_options: { wait: true } },
+  }).on('system', {}, payload => {
+    console.log('Realtime ' + table + ': ' + payload.status + ' / ' + payload.message);
+  }).on('postgres_changes', {
     event, schema: 'public', table, filter,
   }, payload => { clearTimeout(timer); resolveChange(payload.new); });
   await new Promise((resolve, reject) => {
+    const startup = setTimeout(() => reject(new Error('Realtime readiness timed out: ' + table)), 25000);
     channel.subscribe(status => {
-      if (status === 'SUBSCRIBED') resolve();
-      if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-        clearTimeout(timer); reject(new Error('Realtime subscription failed: ' + table));
+      if (status === 'SUBSCRIBED') { clearTimeout(startup); resolve(); }
+      if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+        clearTimeout(startup); reject(new Error('Realtime subscription failed: ' + table));
       }
     });
   });
+  timer = setTimeout(() => rejectChange(new Error('Realtime delivery timed out: ' + table)), 20000);
   return { result, channel };
 }
 

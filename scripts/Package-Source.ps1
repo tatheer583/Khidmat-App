@@ -5,7 +5,7 @@ $repoRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $stagingRoot = Join-Path $repoRoot ('.build-tools/package-' + [guid]::NewGuid().ToString('N'))
 [IO.Directory]::CreateDirectory($stagingRoot) | Out-Null
 # Explicit allowlist keeps SDKs, backend connection settings and signing secrets out.
-foreach ($relative in @('lib','android','ios','scripts','supabase','test','docs','.github',
+foreach ($relative in @('lib','android','ios','scripts','supabase','test','integration','docs','.github',
   'pubspec.yaml','analysis_options.yaml','.gitignore','README.md')) {
   $source = Join-Path $repoRoot $relative
   if (Test-Path -LiteralPath $source -PathType Container) {

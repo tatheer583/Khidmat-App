@@ -131,10 +131,21 @@ jobs:
         with:
           node-version: '22'
       - run: npm ci --prefix supabase/tests/http --ignore-scripts
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.6'
+          channel: stable
+          cache: true
       - name: Exercise Auth, Storage and Realtime over HTTP and WebSockets
         run: |
           mkdir -p .build-tools
           supabase status -o json > .build-tools/supabase-status.json
           node supabase/tests/http/integration.mjs .build-tools/supabase-status.json
+      - name: Verify the actual Flutter repository against the local stack
+        env:
+          KHIDMAT_TEST_CONFIG: .build-tools/supabase-status.json
+        run: |
+          flutter pub get
+          flutter test --no-pub integration/backend_stream_test.dart
       - if: always()
         run: supabase stop --no-backup

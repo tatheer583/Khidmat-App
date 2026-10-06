@@ -1,4 +1,6 @@
 const Map<String, String> urduStrings = {
+  'Live updates disconnected. Please try again.':
+      'تازہ معلومات کا رابطہ ٹوٹ گیا۔ دوبارہ کوشش کریں۔',
   'Connecting to Khidmat…': 'خدمت سے رابطہ ہو رہا ہے…',
   'Unable to connect': 'رابطہ نہیں ہو سکا',
   'Khidmat services are not ready yet. The app owner needs to finish service setup. Please try again later.':

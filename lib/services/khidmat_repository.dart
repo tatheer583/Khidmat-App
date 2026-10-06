@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
@@ -76,24 +77,124 @@ class KhidmatRepository {
             as List,
       );
 
-  Stream<List<Map<String, dynamic>>> bookings() => client
-      .from('bookings')
-      .stream(primaryKey: ['id'])
-      .order('created_at', ascending: false)
-      .limit(100);
-  Stream<List<Map<String, dynamic>>> watchBooking(String id) =>
-      client.from('bookings').stream(primaryKey: ['id']).eq('id', id);
-  Stream<List<Map<String, dynamic>>> events(String id) => client
-      .from('booking_events')
-      .stream(primaryKey: ['id'])
-      .eq('booking_id', id)
-      .order('id');
-  Stream<List<Map<String, dynamic>>> messages(String id) => client
-      .from('messages')
-      .stream(primaryKey: ['id'])
-      .eq('booking_id', id)
-      .order('created_at', ascending: false)
-      .limit(200);
+  Stream<List<Map<String, dynamic>>> bookings() => _watchRows(
+    'bookings',
+    () => client
+        .from('bookings')
+        .select()
+        .order('created_at', ascending: false)
+        .limit(100),
+  );
+  Stream<List<Map<String, dynamic>>> watchBooking(String id) => _watchRows(
+    'bookings',
+    () => client.from('bookings').select().eq('id', id),
+    column: 'id',
+    value: id,
+  );
+  Stream<List<Map<String, dynamic>>> events(String id) => _watchRows(
+    'booking_events',
+    () =>
+        client.from('booking_events').select().eq('booking_id', id).order('id'),
+    column: 'booking_id',
+    value: id,
+  );
+  Stream<List<Map<String, dynamic>>> messages(String id) => _watchRows(
+    'messages',
+    () => client
+        .from('messages')
+        .select()
+        .eq('booking_id', id)
+        .order('created_at', ascending: false)
+        .limit(200),
+    column: 'booking_id',
+    value: id,
+  );
+
+  /// A channel join can precede its PostgreSQL subscription. Re-read when the
+  /// server confirms that subscription, closing the initial snapshot gap.
+  /// Also resync on reconnect. Serialized reads prevent stale responses from
+  /// overwriting newer changes; all snapshots still pass through database RLS.
+  Stream<List<Map<String, dynamic>>> _watchRows(
+    String table,
+    Future<List<Map<String, dynamic>>> Function() read, {
+    String? column,
+    String? value,
+  }) {
+    late StreamController<List<Map<String, dynamic>>> controller;
+    RealtimeChannel? channel;
+    bool cancelled = false;
+    bool reading = false;
+    bool dirty = false;
+    Object? realtimeError;
+    Future<void> refresh() async {
+      dirty = true;
+      if (reading || cancelled) return;
+      reading = true;
+      try {
+        while (dirty && !cancelled) {
+          dirty = false;
+          try {
+            final rows = await read().timeout(const Duration(seconds: 20));
+            if (!cancelled) {
+              controller.add(rows);
+              if (realtimeError != null) controller.addError(realtimeError!);
+            }
+          } catch (error, stack) {
+            if (!cancelled) controller.addError(error, stack);
+          }
+        }
+      } finally {
+        reading = false;
+      }
+    }
+
+    controller = StreamController(
+      onListen: () {
+        channel = client
+            .channel('khidmat-$table-${const Uuid().v4()}')
+            .onPostgresChanges(
+              event: PostgresChangeEvent.all,
+              schema: 'public',
+              table: table,
+              filter: column == null
+                  ? null
+                  : PostgresChangeFilter(
+                      type: PostgresChangeFilterType.eq,
+                      column: column,
+                      value: value!,
+                    ),
+              callback: (_) => unawaited(refresh()),
+            )
+            .onSystemEvents((payload) {
+              if (payload['extension'] == 'postgres_changes' &&
+                  payload['status'] == 'ok') {
+                realtimeError = null;
+                unawaited(refresh());
+              }
+            })
+            .subscribe((status, [error]) {
+              if (status == RealtimeSubscribeStatus.subscribed) {
+                realtimeError = null;
+                unawaited(refresh());
+              } else if (!cancelled &&
+                  (status == RealtimeSubscribeStatus.channelError ||
+                      status == RealtimeSubscribeStatus.timedOut ||
+                      status == RealtimeSubscribeStatus.closed)) {
+                realtimeError = StateError(
+                  'Live updates disconnected. Please try again.',
+                );
+                controller.addError(realtimeError!);
+              }
+            });
+        unawaited(refresh());
+      },
+      onCancel: () async {
+        cancelled = true;
+        if (channel != null) await client.removeChannel(channel!);
+      },
+    );
+    return controller.stream;
+  }
 
   Future<void> transition(String id, String status) async {
     await client.rpc(
