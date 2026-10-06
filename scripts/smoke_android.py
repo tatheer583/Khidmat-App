@@ -8,7 +8,7 @@ import xml.etree.ElementTree as ET
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("apk", type=pathlib.Path)
-parser.add_argument("--expected-version", type=int, default=5001)
+parser.add_argument("--expected-version", type=int, default=5002)
 parser.add_argument("--initial-language", choices=("en", "ur"))
 parser.add_argument("--evidence-name", default="current")
 arguments = parser.parse_args()

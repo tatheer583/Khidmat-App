@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../services/backend_session.dart';
+import '../theme/app_colors.dart';
+import '../widgets/khidmat_brand.dart';
 import '../widgets/live_ui.dart';
 
 class WelcomeScreen extends StatefulWidget {
@@ -104,19 +106,29 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Icon(Icons.handshake_outlined, size: 64),
-                  const SizedBox(height: 20),
+                  const Center(child: KhidmatBrandMark(size: 88)),
+                  const SizedBox(height: 22),
                   LocalizedText(
-                    'خدمت • Khidmat',
+                    'Khidmat',
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.headlineLarge,
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 4),
                   const LocalizedText(
-                    'Trusted help, in your language.',
+                    'خدمت',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: AppColors.primaryLight,
+                      fontSize: 22,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const LocalizedText(
+                    'Trusted local help, in your language.',
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 26),
                   ElevatedButton.icon(
                     onPressed:
                         _busy ||

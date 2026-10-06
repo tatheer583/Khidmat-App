@@ -78,7 +78,7 @@ try {
       Get-FileHash -LiteralPath $destination -Algorithm SHA256
       Write-Output ('Built: ' + $destination)
     }
-    Write-Output 'Install khidmat-arm64-v8a.apk on most modern Android phones. Use khidmat-armeabi-v7a.apk for older 32-bit phones.'
+    Write-Output 'Built APKs for each Android architecture. The universal APK is provided for one-download installs.'
   } else {
     $destination = Join-Path $releaseRoot 'khidmat-live.apk'
     Copy-Item -LiteralPath (Join-Path $repoRoot 'build/app/outputs/flutter-apk/app-release.apk') -Destination $destination -Force

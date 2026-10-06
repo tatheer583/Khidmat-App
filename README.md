@@ -2,21 +2,22 @@
 
 Find local workers, request services and follow jobs in English or Urdu. Flutter provides the Android/iOS app; Supabase provides authentication, profiles, bookings, private photos and Realtime conversations.
 
-**Version 1.3.0, build 5001. Android 7.0+; iOS 15.0+.**
+**Version 1.4.0, build 5002. Android 7.0+; iOS 15.0+.**
 
-## Download Android
+## Install Khidmat
 
-- [Download for most phones — arm64](https://github.com/tatheer583/Khidmat-App/releases/download/v1.3.0/khidmat-arm64-v8a.apk)
-- [Download universal APK — if you do not know your phone architecture](https://github.com/tatheer583/Khidmat-App/releases/download/v1.3.0/khidmat-universal.apk)
-- [Older 32-bit phones](https://github.com/tatheer583/Khidmat-App/releases/download/v1.3.0/khidmat-armeabi-v7a.apk)
-- [Release notes and SHA-256 checksums](https://github.com/tatheer583/Khidmat-App/releases/tag/v1.3.0)
+**Android phone:** [Download Khidmat for Android](https://github.com/tatheer583/Khidmat-App/releases/download/v1.4.0/khidmat-universal.apk). This one APK works on supported Android phones (about 55 MiB).
 
-1. Open the link in your browser, rather than an in-app preview. Wait for the download to finish.
-2. On Android, open **Files → Downloads**, select the `.apk`, and allow installation from that browser/file manager if Android requests it. Keep Play Protect enabled.
-3. If Android reports a conflicting package, the original prototype used a different signing key. Uninstall that prototype once, then install this release. This removes local app preferences, but does not delete server records. Earlier builds signed by Khidmat should update in place.
-4. If installation still fails, record the phone model, Android version, filename and exact installer error. A partial `.crdownload` file cannot install. APKs cannot install on iPhones.
+1. Tap the link on your phone and wait for the download to finish.
+2. Open **Files** or **Downloads** and tap **khidmat-universal.apk**.
+3. If asked, allow your browser to install apps. Go back and tap **Install**, then **Open**. Keep Play Protect on.
+4. If Android says the old Khidmat app conflicts, uninstall the old app once and install this one.
 
-Every APK variant now uses version code **5001**. Earlier splits had codes 1003/2003/4003 while the universal APK had code 3, so Android could reject switching APK types as a downgrade. The new build is above all previous variants and retains the Khidmat release certificate.
+**iPhone:** The Android APK does not work on iPhone. An iPhone download is not ready yet; the iOS app needs Apple signing before it can be offered through TestFlight or the App Store. The [iPhone setup details](docs/VERIFICATION.md) explain what is needed.
+
+**Before using sign-in and bookings:** The supplied Supabase service needs setup. Follow [the setup guide](docs/ACTIVATE-SUPABASE.md).
+
+The signed update keeps the same Khidmat release certificate. If the original prototype conflicts with it, remove that prototype once before installing this update.
 
 ## Required service activation
 
@@ -96,6 +97,6 @@ Before inviting customers, use two real phones/accounts: confirm registration, c
 
 ## Source
 
-Download the [complete Android/iOS source package](https://github.com/tatheer583/Khidmat-App/releases/download/v1.3.0/Khidmat-Supabase-source.zip), or clone this repository. The source package includes the corrected verification workflow and activation instructions; private signing files are excluded.
+Download the [complete Android/iOS source package](https://github.com/tatheer583/Khidmat-App/releases/download/v1.4.0/Khidmat-Supabase-source.zip), or clone this repository. The source package includes the corrected verification workflow and activation instructions; private signing files are excluded.
 
 `lib/` app; `android/` and `ios/` native projects; `supabase/migrations/` schema; `supabase/tests/` security/API tests; `scripts/` build/verification; `docs/` activation and evidence.

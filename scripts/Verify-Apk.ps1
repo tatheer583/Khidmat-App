@@ -2,7 +2,7 @@
 param(
   [Parameter(Mandatory)][string]$Apk,
   [string]$SdkRoot = 'A:\Khidmat-Tools\android-sdk',
-  [int]$ExpectedVersionCode = 5001
+  [int]$ExpectedVersionCode = 5002
 )
 $ErrorActionPreference = 'Stop'
 $apkPath = (Resolve-Path -LiteralPath $Apk).Path

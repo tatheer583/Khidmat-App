@@ -2,6 +2,7 @@ import '../localization/app_language.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/backend_session.dart';
+import '../widgets/khidmat_brand.dart';
 
 class SetupScreen extends StatefulWidget {
   const SetupScreen({super.key});
@@ -52,7 +53,7 @@ class _SetupScreenState extends State<SetupScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Icon(Icons.handshake_outlined, size: 60),
+              const Center(child: KhidmatBrandMark(size: 76)),
               const SizedBox(height: 24),
               LocalizedText(
                 'Welcome to Khidmat',

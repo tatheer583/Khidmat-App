@@ -12,6 +12,7 @@ APK_ABIS = {
     "khidmat-armeabi-v7a.apk": {"armeabi-v7a"},
     "khidmat-x86_64.apk": {"x86_64"},
 }
+REQUIRED_APKS = {"khidmat-universal.apk"}
 
 
 def verify(directory):
@@ -27,9 +28,12 @@ def verify(directory):
         if filename in hashes:
             raise ValueError("Duplicate checksum entry: " + filename)
         hashes[filename] = digest.lower()
+    missing = REQUIRED_APKS - hashes.keys()
+    if missing:
+        raise ValueError("Required APK checksum missing: " + ", ".join(sorted(missing)))
     for filename, expected_abis in APK_ABIS.items():
         if filename not in hashes:
-            raise ValueError("Required APK checksum missing: " + filename)
+            continue
         apk = directory / filename
         with apk.open("rb") as file:
             actual_digest = hashlib.file_digest(file, "sha256").hexdigest()

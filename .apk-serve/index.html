@@ -42,6 +42,13 @@
     justify-content:center; font-size:12px; font-weight:700;
   }
   .size { color:#4A6B5E; font-size:12px; margin-top:4px; }
+  .ios {
+    margin-top:16px; padding:18px; text-align:left; line-height:1.6;
+    background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08);
+    border-radius:16px; color:#C8DBD3; font-size:14px;
+  }
+  .ios h2 { color:#E2EFEA; font-size:16px; margin-bottom:6px; }
+  .ios a { color:#4DFFC4; }
 </style>
 </head>
 <body>
@@ -51,16 +58,21 @@
   <h1>KHIDMAT</h1>
   <p class="sub">Local services in English and Urdu</p>
 
-  <a class="btn" href="https://github.com/tatheer583/Khidmat-App/releases/download/v1.3.0/khidmat-arm64-v8a.apk" download>⬇  Download APK</a>
-  <p class="size">Version 1.3.0 · Android 7.0+ · about 19 MiB · arm64</p>
-  <p class="sub" style="margin-top:16px">For older 32-bit phones, use the <a href="https://github.com/tatheer583/Khidmat-App/releases/download/v1.3.0/khidmat-armeabi-v7a.apk" style="color:#4DFFC4">32-bit APK</a>.<br>If unsure, use the <a href="https://github.com/tatheer583/Khidmat-App/releases/download/v1.3.0/khidmat-universal.apk" style="color:#4DFFC4">universal APK</a>.<br>Setup is required before live use. <a href="https://github.com/tatheer583/Khidmat-App/blob/main/docs/ACTIVATE-SUPABASE.md" style="color:#4DFFC4">Read the setup guide</a>.</p>
+  <a class="btn" href="https://github.com/tatheer583/Khidmat-App/releases/download/v1.4.0/khidmat-universal.apk" download>⬇  Download for Android</a>
+  <p class="size">One APK for supported Android phones · about 55 MiB · Android 7.0+</p>
+
+  <div class="ios">
+    <h2>iPhone</h2>
+    <p>The Android APK cannot be installed on an iPhone. The iPhone app needs Apple signing before it can be downloaded through TestFlight or the App Store. <a href="https://github.com/tatheer583/Khidmat-App/blob/main/docs/VERIFICATION.md">See iPhone setup details</a>.</p>
+  </div>
+  <p class="sub" style="margin-top:16px">Live accounts and bookings need service setup. <a href="https://github.com/tatheer583/Khidmat-App/blob/main/docs/ACTIVATE-SUPABASE.md" style="color:#4DFFC4">Read the simple setup guide</a>.</p>
 
   <div class="steps" style="margin-top:24px;">
-    <h3>INSTALL STEPS</h3>
-    <div class="step"><span class="num">1</span><span>Tap <b>Download APK</b> above.</span></div>
-    <div class="step"><span class="num">2</span><span>Open the downloaded file (check your Notifications or Downloads folder).</span></div>
-    <div class="step"><span class="num">3</span><span>If prompted, allow <b>"Install unknown apps"</b> for your browser.</span></div>
-    <div class="step"><span class="num">4</span><span>Tap <b>Install</b> → then <b>Open</b>. Done! 🎉</span></div>
+    <h3>INSTALL ON ANDROID</h3>
+    <div class="step"><span class="num">1</span><span>Tap <b>Download for Android</b> and wait until it finishes.</span></div>
+    <div class="step"><span class="num">2</span><span>Open <b>Files → Downloads</b> and tap <b>khidmat-universal.apk</b>.</span></div>
+    <div class="step"><span class="num">3</span><span>If asked, allow your browser to install apps, return here and tap <b>Install</b>.</span></div>
+    <div class="step"><span class="num">4</span><span>Tap <b>Open</b>. If the old app conflicts, uninstall it once and retry.</span></div>
   </div>
 </div>
 </body>

@@ -1,10 +1,12 @@
 # Verification record
 
-Date: 2026-10-06. Application: Khidmat 1.3.0, Android build 5001.
+Date: 2026-10-07. Application: Khidmat 1.4.0, Android build 5002.
+
+This update refreshes the Khidmat logo, welcome screen and connection/setup recovery in English and Urdu, and removes unused Flutter dependencies. The Android release APK is built and locally verified. The GitHub Android/iOS/backend and published-release emulator workflows must finish successfully before their results are claimed below.
 
 ## Application and backend checks
 
-[The final application workflow](https://github.com/tatheer583/Khidmat-App/actions/runs/37507029594) checks the application code used for these APKs, commit `da5c6e2`.
+[The previous application workflow](https://github.com/tatheer583/Khidmat-App/actions/runs/37507029594) passed for the 1.3.0 app baseline, commit `da5c6e2`. The 1.4.0 changes require a fresh GitHub workflow run; its Android, iOS and backend results are pending.
 
 - Flutter 3.47.6 / Dart 3.13.5 analysis passed without issues. All 16 application tests passed, including startup recovery, bounded HTTP requests, role routing and English/Urdu behavior.
 - All three database migrations applied to a disposable full Supabase stack. All 40 pgTAP assertions passed, covering pricing, booking authorization, duplicate reservations, date availability, private data, profiles and readiness.
@@ -15,30 +17,27 @@ Date: 2026-10-06. Application: Khidmat 1.3.0, Android build 5001.
 
 The app now refreshes data when the database subscription is ready and after reconnection. A channel joining is insufficient evidence that Postgres change delivery has started; the integration tests wait for subscription readiness and verify delivery over actual WebSockets.
 
-## Signed Android downloads
+## Signed Android download
 
-The release APKs were built locally from the checked application code using `config/app.public.json`. Each contains its compiled Dart application and Flutter engine. Android `apksigner`, package parsing and 16 KB ZIP alignment checks passed for every file.
+The universal APK was built locally from the application code using `config/app.public.json`. It contains its compiled Dart application and Flutter engine. Android `apksigner`, package parsing and 16 KB ZIP alignment checks passed locally.
 
-- Package: `com.khidmat.khidmat`; version `1.3.0`; **all variants use version code 5001**.
+- Package: `com.khidmat.khidmat`; version `1.4.0`; version code `5002`.
 - Minimum Android API 24 (Android 7.0), target API 36.
 - Retained signing certificate SHA-256: `7c680b76c6d8ba235ebc72b68b05038ecaddb0d38e7d776f977695db2cdacebd`.
 
-| File | Bytes | Architecture |
+| File | Bytes | What it supports |
 | --- | ---: | --- |
-| khidmat-arm64-v8a.apk | 19,952,339 | Most current Android phones |
-| khidmat-armeabi-v7a.apk | 17,672,349 | Older 32-bit ARM phones |
-| khidmat-x86_64.apk | 21,452,498 | x86-64 devices/emulators |
-| khidmat-universal.apk | 57,432,232 | All three supported architectures |
+| khidmat-universal.apk | 57,447,550 | ARM64, ARM32 and x86-64 Android devices |
 
-`release/SHA256SUMS` and `release/artifacts.json` contain the exact hashes, sizes and verification results. Download links are in [README.md](../README.md). Source packages exclude private signing keys, signing passwords and local connection files.
+`release/SHA256SUMS` and `release/artifacts.json` contain the exact hash, size and verification results. The single Android download link is in [README.md](../README.md). Source packages exclude private signing keys, signing passwords and local connection files.
 
-The earlier split APKs used architecture-dependent version codes, which could prevent switching to a universal APK during an update. Build 5001 removes that mismatch. The retained release certificate supports updates from the previous Khidmat-signed release. The original prototype used a different Android Debug certificate and must be uninstalled once if Android reports a signature conflict.
+This release keeps the same version code across its universal package and retains the Khidmat release certificate, so prior Khidmat-signed versions can update. The original prototype used a different Android Debug certificate and must be uninstalled once if Android reports a signature conflict.
 
-[The public-release verification run](https://github.com/tatheer583/Khidmat-App/actions/runs/37509777306) **passed on both Android API 24 and 35**. Each job downloaded all four published APKs and verified hashes, ZIP completeness, signatures, build 5001, minimum SDK and 16 KB alignment. Each emulator installed/launched the old signed build 4003, upgraded to the signed build 5001 x86 APK, and then installed the universal APK over that build. All six runtime checks passed, including visible UI, English/Urdu switching and restarts. Urdu preferences survived both upgrades on each Android version.
+[The previous public-release verification run](https://github.com/tatheer583/Khidmat-App/actions/runs/37509777306) passed on Android API 24 and 35 for version 1.3.0. The version 1.4.0 public-download and install workflow is pending publication; no emulator result is claimed for it yet.
 
-Independent anonymous downloads on Windows also returned HTTP 200 for all four APKs, with the correct APK content type and download filenames. Exact byte counts, SHA-256 hashes and full ZIP CRC checks matched the local signed files. The public source archive and checksum/metadata files were downloaded and verified too.
+The 1.4.0 package has passed local signature, package/version and 16 KB alignment checks. Public download and emulator installation checks remain pending.
 
-The API 24 and 35 screenshots show a usable connection/retry screen in both languages. The supplied backend is still awaiting activation; installation success does not establish successful hosted login or booking. The initial public-release test setup requested a removed Android SDK package and failed before testing any APK. The corrected workflow explicitly installs available platform tools; the successful run above uses that correction.
+The previous API 24 and 35 screenshots show the 1.3.0 connection/retry screen in both languages. The supplied backend is still awaiting activation; installation success does not establish successful hosted login or booking. The corrected workflow explicitly installs available platform tools.
 
 ## Supplied hosted project
 

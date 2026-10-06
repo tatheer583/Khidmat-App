@@ -28,9 +28,7 @@ foreach ($relative in @('pubspec.lock')) {
     Copy-Item -LiteralPath $source -Destination (Join-Path $stagingRoot $relative)
   }
 }
-foreach ($relative in @('config/supabase.example.json','config/app.public.json',
-  'android/app/src/main/AndroidManifest.xml',
-  'android/app/src/main/res/drawable/khidmat_icon.xml')) {
+foreach ($relative in @('config/supabase.example.json','config/app.public.json')) {
   $target = Join-Path $stagingRoot $relative
   [IO.Directory]::CreateDirectory([IO.Path]::GetDirectoryName($target)) | Out-Null
   Copy-Item -LiteralPath (Join-Path $repoRoot $relative) -Destination $target

@@ -3,6 +3,17 @@ const Map<String, String> urduStrings = {
       'تازہ معلومات کا رابطہ ٹوٹ گیا۔ دوبارہ کوشش کریں۔',
   'Connecting to Khidmat…': 'خدمت سے رابطہ ہو رہا ہے…',
   'Unable to connect': 'رابطہ نہیں ہو سکا',
+  'Khidmat setup is not complete': 'خدمت کی تیاری مکمل نہیں ہوئی',
+  'Your profile could not be loaded': 'آپ کی پروفائل لوڈ نہیں ہو سکی',
+  'We could not load your profile. Check your connection, then try again.':
+      'آپ کی پروفائل لوڈ نہیں ہو سکی۔ انٹرنیٹ چیک کرکے دوبارہ کوشش کریں۔',
+  'Khidmat needs one setup step before anyone can sign in. Ask the app owner to install the database using the steps below.':
+      'لاگ اِن سے پہلے خدمت کی ایک تیاری باقی ہے۔ ایپ کے مالک سے نیچے دیے گئے مراحل میں ڈیٹابیس فعال کرنے کو کہیں۔',
+  'Your phone cannot reach Khidmat. Check Wi-Fi or mobile data, then try again.':
+      'آپ کا فون خدمت سے رابطہ نہیں کر سکا۔ وائی فائی یا موبائل ڈیٹا چیک کرکے دوبارہ کوشش کریں۔',
+  'View setup steps': 'تیاری کے مراحل دیکھیں',
+  'Trusted local help, in your language.':
+      'آپ کی زبان میں قابلِ اعتماد مقامی مدد۔',
   'Khidmat services are not ready yet. The app owner needs to finish service setup. Please try again later.':
       'خدمت کی سہولتیں ابھی تیار نہیں۔ ایپ کے مالک کو تنصیب مکمل کرنا ہوگی۔ کچھ دیر بعد دوبارہ کوشش کریں۔',
   'Could not connect to Khidmat. Check your connection and try again.':
