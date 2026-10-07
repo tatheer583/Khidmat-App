@@ -56,6 +56,8 @@ pwsh ./scripts/Verify-Apk.ps1 -Apk release/khidmat-universal.apk -SdkRoot C:/pat
 
 The build script produces one signed universal APK. `-AppBundle` creates a Play Store bundle. No backend keys or Dart defines are needed.
 
+For a cloud build, open [Actions → Build signed Android download](https://github.com/tatheer583/Khidmat-App/actions/workflows/signed-android.yml) and choose **Run workflow** on **main**. This repository already has its signing values in encrypted Actions secrets. Download the resulting artifact; the phone installer inside is **khidmat-universal.apk**. This also provides a build path when Windows application control blocks a Flutter compiler.
+
 [Install-Toolchain.ps1](scripts/Install-Toolchain.ps1) installs the Windows tools. [New-SigningKey.ps1](scripts/New-SigningKey.ps1) is for a new developer’s first private signing key; keep the production key for published updates. CI uses its own test signing certificate.
 
 ## Build iOS
