@@ -179,6 +179,31 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('worker search fits a small phone while the keyboard is open', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(320, 568);
+    tester.view.devicePixelRatio = 1;
+    tester.view.viewInsets = const FakeViewPadding(bottom: 260);
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetViewInsets);
+    await tester.runAsync(
+      () => store.saveProfile(
+        const KhidmatProfile(
+          name: 'Ali Khan',
+          city: 'Lahore',
+          role: AccountRole.customer,
+        ),
+      ),
+    );
+    await start(tester);
+    await go(tester, '/contacts');
+    await tester.enterText(find.byType(TextField), 'plumber');
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets(
     'removing the active profile through backup returns safely to welcome',
     (tester) async {

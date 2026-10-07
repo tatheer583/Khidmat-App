@@ -26,6 +26,7 @@ class _ContactsScreenState extends State<ContactsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final keyboardOpen = MediaQuery.viewInsetsOf(context).bottom > 0;
     final store = context.watch<LocalStore>();
     final workers = findSavedWorkers(
       store.workers,
@@ -47,10 +48,11 @@ class _ContactsScreenState extends State<ContactsScreen> {
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
             child: Column(
               children: [
-                const LocalizedText(
-                  'Add workers you know. This list is saved on your phone.',
-                ),
-                const SizedBox(height: 16),
+                if (!keyboardOpen)
+                  const LocalizedText(
+                    'Add workers you know. This list is saved on your phone.',
+                  ),
+                if (!keyboardOpen) const SizedBox(height: 16),
                 TextField(
                   controller: _search,
                   decoration: localizedDecoration(
@@ -60,36 +62,37 @@ class _ContactsScreenState extends State<ContactsScreen> {
                   ),
                   onChanged: (_) => setState(() {}),
                 ),
-                const SizedBox(height: 12),
-                SizedBox(
-                  height: 52,
-                  child: ListView(
-                    scrollDirection: Axis.horizontal,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsetsDirectional.only(end: 8),
-                        child: FilterChip(
-                          label: const LocalizedText('Favorites'),
-                          selected: _favorites,
-                          onSelected: (v) => setState(() => _favorites = v),
-                        ),
-                      ),
-                      for (final category in ['All', ...serviceCategories])
+                if (!keyboardOpen) const SizedBox(height: 12),
+                if (!keyboardOpen)
+                  SizedBox(
+                    height: 52,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      children: [
                         Padding(
                           padding: const EdgeInsetsDirectional.only(end: 8),
-                          child: ChoiceChip(
-                            label: LocalizedText(category),
-                            selected: (_category ?? 'All') == category,
-                            onSelected: (_) => setState(
-                              () => _category = category == 'All'
-                                  ? null
-                                  : category,
-                            ),
+                          child: FilterChip(
+                            label: const LocalizedText('Favorites'),
+                            selected: _favorites,
+                            onSelected: (v) => setState(() => _favorites = v),
                           ),
                         ),
-                    ],
+                        for (final category in ['All', ...serviceCategories])
+                          Padding(
+                            padding: const EdgeInsetsDirectional.only(end: 8),
+                            child: ChoiceChip(
+                              label: LocalizedText(category),
+                              selected: (_category ?? 'All') == category,
+                              onSelected: (_) => setState(
+                                () => _category = category == 'All'
+                                    ? null
+                                    : category,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
-                ),
               ],
             ),
           ),
