@@ -7,7 +7,7 @@ on:
       tag:
         description: Release tag to verify
         required: true
-        default: v1.4.0
+        default: v2.0.0
 permissions:
   contents: read
 jobs:
@@ -51,7 +51,7 @@ jobs:
             CERT=$("$SIGNER" verify --verbose --print-certs --min-sdk-version 24 "$APK" | sed -n 's/^Signer #[0-9]* certificate SHA-256 digest: //p')
             test "$CERT" = '7c680b76c6d8ba235ebc72b68b05038ecaddb0d38e7d776f977695db2cdacebd'
             if [ "$APK" != downloaded/previous.apk ]; then
-              "$AAPT" dump badging "$APK" | grep "package: name='com.khidmat.khidmat' versionCode='5002' versionName='1.4.0'"
+              "$AAPT" dump badging "$APK" | grep "package: name='com.khidmat.khidmat' versionCode='5003' versionName='2.0.0'"
               "$AAPT" dump badging "$APK" | grep -E "^(sdkVersion|minSdkVersion):'24'$"
               "$ZIPALIGN" -c -P 16 4 "$APK"
             fi
@@ -69,7 +69,7 @@ jobs:
           disable-animations: true
           script: |
             python3 scripts/smoke_android.py downloaded/previous.apk --expected-version 4003 --evidence-name previous
-            python3 scripts/smoke_android.py downloaded/khidmat-universal.apk --initial-language ur --evidence-name universal-upgrade
+            python3 scripts/smoke_android.py downloaded/khidmat-universal.apk --offline --exercise-local-flow --initial-language ur --evidence-name universal-upgrade
       - uses: actions/upload-artifact@v4
         if: always()
         with:

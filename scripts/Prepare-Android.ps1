@@ -6,7 +6,7 @@ $flutterCommand = Get-Command flutter -ErrorAction SilentlyContinue
 if (!$flutterCommand) {
   $localFlutter = Join-Path $repoRoot '.tools/flutter/bin/flutter.bat'
   if (Test-Path -LiteralPath $localFlutter) { $flutterCommand = Get-Item -LiteralPath $localFlutter }
-  else { throw 'Flutter is missing. Run scripts/Install-Toolchain.ps1 first or install Flutter 3.35+.' }
+  else { throw 'Flutter is missing. Run scripts/Install-Toolchain.ps1 first or install Flutter 3.38.1+.' }
 }
 $flutterPath = $flutterCommand.Source
 if (!$flutterPath) { $flutterPath = $flutterCommand.FullName }
@@ -27,13 +27,18 @@ if (!(Test-Path -LiteralPath $wrapper)) {
       Remove-Item -LiteralPath $legacyFile
     }
   }
-  Copy-Item -Path (Join-Path $generatedAndroid '*') -Destination $androidRoot -Recurse -Force
+  # Only fill missing scaffolding; keep our manifest, icons and Gradle settings.
+  foreach ($file in (Get-ChildItem -LiteralPath $generatedAndroid -File -Recurse)) {
+    $relative = [IO.Path]::GetRelativePath($generatedAndroid, $file.FullName)
+    $destination = Join-Path $androidRoot $relative
+    if (!(Test-Path -LiteralPath $destination)) {
+      [IO.Directory]::CreateDirectory([IO.Path]::GetDirectoryName($destination)) | Out-Null
+      Copy-Item -LiteralPath $file.FullName -Destination $destination
+    }
+  }
 }
 $manifestPath = Join-Path $repoRoot 'android/app/src/main/AndroidManifest.xml'
 $manifest = [IO.File]::ReadAllText($manifestPath)
-if (!$manifest.Contains('android.permission.INTERNET')) {
-  $manifest = $manifest.Replace('<application', '<uses-permission android:name="android.permission.INTERNET" />' + [Environment]::NewLine + '    <application')
-}
 $manifest = $manifest.Replace('android:label="khidmat"', 'android:label="Khidmat"')
 $manifest = $manifest.Replace('android:icon="@mipmap/ic_launcher"', 'android:icon="@drawable/khidmat_icon"')
 [IO.File]::WriteAllText($manifestPath, $manifest, [Text.UTF8Encoding]::new($false))

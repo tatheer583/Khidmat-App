@@ -1,193 +1,183 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'localization/app_language.dart';
-import 'screens/onboarding_screen.dart';
-import 'screens/worker_home_screen.dart';
-import 'screens/worker_profile_screen.dart';
+import 'services/local_store.dart';
 import 'theme/app_theme.dart';
-import 'services/app_state.dart';
-import 'services/backend_session.dart';
-import 'screens/setup_screen.dart';
 import 'screens/welcome_screen.dart';
-import 'screens/otp_screen.dart';
+import 'screens/profile_screen.dart';
 import 'screens/home_screen.dart';
-import 'screens/provider_list_screen.dart';
-import 'screens/negotiation_screen.dart';
-import 'screens/booking_summary_screen.dart';
-import 'screens/bookings_screen.dart';
-import 'screens/chat_screen.dart';
+import 'screens/contacts_screen.dart';
+import 'screens/worker_form_screen.dart';
+import 'screens/worker_profile_screen.dart';
+import 'screens/jobs_screen.dart';
+import 'screens/job_form_screen.dart';
+import 'screens/job_detail_screen.dart';
 import 'screens/account_screen.dart';
-import 'screens/provider_dashboard_screen.dart';
-import 'screens/agent_logs_screen.dart';
+import 'screens/backup_screen.dart';
 import 'screens/help_screen.dart';
-import 'screens/connection_screen.dart';
-import 'screens/password_screen.dart';
+import 'widgets/app_ui.dart';
 
 class KhidmatApp extends StatefulWidget {
-  final BackendSession? session;
-  const KhidmatApp({super.key, this.session});
+  const KhidmatApp({super.key, this.store});
+  final LocalStore? store;
   @override
   State<KhidmatApp> createState() => _KhidmatAppState();
 }
 
 class _KhidmatAppState extends State<KhidmatApp> {
-  late final BackendSession _session;
-  late final AppState _state;
+  late final LocalStore _store;
   late final GoRouter _router;
   final AppLanguage _language = AppLanguage();
-  void _languageChanged() {
-    if (mounted) setState(() {});
-  }
-
   @override
   void initState() {
     super.initState();
-    _language.addListener(_languageChanged);
-    unawaited(_language.load());
-    _session = widget.session ?? BackendSession();
-    _state = AppState(_session);
+    _store = widget.store ?? LocalStore();
     _router = GoRouter(
       initialLocation: '/home',
-      refreshListenable: _session,
+      refreshListenable: _store,
       redirect: (context, state) {
         final path = state.uri.path;
-        if (_session.initializing) {
-          return path == '/connection' ? null : '/connection';
+        if (!_store.initialized) {
+          return path == '/storage' ||
+                  (path == '/backup' && _store.error != null)
+              ? null
+              : '/storage';
         }
-        if (!_session.ready) return path == '/setup' ? null : '/setup';
-        if (!_session.serviceAvailable) {
-          return path == '/connection' ? null : '/connection';
+        if (_store.profile == null) {
+          return [
+                '/welcome',
+                '/profile/create',
+                '/backup',
+                '/help',
+              ].contains(path)
+              ? null
+              : '/welcome';
         }
-        if (!_session.signedIn) {
-          return path == '/welcome' || path == '/otp' ? null : '/welcome';
-        }
-        if (_session.recoveringPassword) {
-          return path == '/password' ? null : '/password';
-        }
-        if (_session.profile == null) {
-          return path == '/connection' ? null : '/connection';
-        }
-        if (!_session.profileComplete) {
-          return path == '/onboarding' ? null : '/onboarding';
-        }
-        if (path == '/onboarding') return '/home';
-        if (!_session.isWorker && path == '/provider') return '/home';
-        if ([
-          '/',
-          '/setup',
-          '/welcome',
-          '/otp',
-          '/connection',
-          '/password',
-        ].contains(path)) {
+        if (['/', '/welcome', '/storage', '/profile/create'].contains(path)) {
           return '/home';
         }
         return null;
       },
       routes: [
+        GoRoute(path: '/', redirect: (_, _) => '/home'),
+        GoRoute(path: '/storage', builder: (_, _) => const _StorageScreen()),
+        GoRoute(path: '/welcome', builder: (_, _) => const WelcomeScreen()),
         GoRoute(
-          path: '/connection',
-          builder: (_, state) => const ConnectionScreen(),
-        ),
-        GoRoute(
-          path: '/password',
-          builder: (_, state) => const PasswordScreen(),
-        ),
-        GoRoute(path: '/', redirect: (_, state) => '/home'),
-        GoRoute(path: '/setup', builder: (_, state) => const SetupScreen()),
-        GoRoute(path: '/welcome', builder: (_, state) => const WelcomeScreen()),
-        GoRoute(path: '/otp', builder: (_, state) => const OtpScreen()),
-        GoRoute(
-          path: '/onboarding',
-          builder: (_, state) => const OnboardingScreen(),
+          path: '/profile/create',
+          builder: (_, _) => const ProfileScreen(creating: true),
         ),
         GoRoute(
           path: '/profile/edit',
-          builder: (_, state) => const OnboardingScreen(editing: true),
+          builder: (_, _) => const ProfileScreen(),
+        ),
+        GoRoute(path: '/home', builder: (_, _) => const HomeScreen()),
+        GoRoute(path: '/contacts', builder: (_, _) => const ContactsScreen()),
+        GoRoute(
+          path: '/contacts/new',
+          builder: (_, _) => const WorkerFormScreen(),
         ),
         GoRoute(
-          path: '/worker/:id',
-          builder: (_, state) =>
-              WorkerProfileScreen(providerId: state.pathParameters['id']!),
+          path: '/contacts/:id',
+          builder: (_, s) => WorkerProfileScreen(id: s.pathParameters['id']!),
         ),
         GoRoute(
-          path: '/home',
-          builder: (_, state) =>
-              _session.isWorker ? const WorkerHomeScreen() : const HomeScreen(),
+          path: '/contacts/:id/edit',
+          builder: (_, s) => WorkerFormScreen(id: s.pathParameters['id']!),
+        ),
+        GoRoute(path: '/jobs', builder: (_, _) => const JobsScreen()),
+        GoRoute(
+          path: '/jobs/new',
+          builder: (_, s) =>
+              JobFormScreen(workerId: s.uri.queryParameters['worker']),
         ),
         GoRoute(
-          path: '/providers',
-          builder: (_, state) => const ProviderListScreen(),
+          path: '/jobs/:id',
+          builder: (_, s) => JobDetailScreen(id: s.pathParameters['id']!),
         ),
         GoRoute(
-          path: '/negotiation',
-          builder: (_, state) => const NegotiationScreen(),
+          path: '/jobs/:id/edit',
+          builder: (_, s) => JobFormScreen(id: s.pathParameters['id']!),
         ),
-        GoRoute(
-          path: '/bookings',
-          builder: (_, state) => const BookingsScreen(),
-        ),
-        GoRoute(
-          path: '/booking/:id',
-          builder: (_, state) =>
-              BookingSummaryScreen(bookingId: state.pathParameters['id']!),
-          routes: [
-            GoRoute(
-              path: 'chat',
-              builder: (_, state) =>
-                  ChatScreen(bookingId: state.pathParameters['id']!),
-            ),
-          ],
-        ),
-        GoRoute(path: '/account', builder: (_, state) => const AccountScreen()),
-        GoRoute(
-          path: '/provider',
-          builder: (_, state) => const ProviderDashboardScreen(),
-        ),
-        GoRoute(path: '/logs', builder: (_, state) => const AgentLogsScreen()),
-        GoRoute(path: '/help', builder: (_, state) => const HelpScreen()),
+        GoRoute(path: '/account', builder: (_, _) => const AccountScreen()),
+        GoRoute(path: '/backup', builder: (_, _) => const BackupScreen()),
+        GoRoute(path: '/help', builder: (_, _) => const HelpScreen()),
       ],
-      errorBuilder: (context, state) => Scaffold(
-        appBar: AppBar(title: const Text('Khidmat')),
-        body: Center(
-          child: TextButton(
-            onPressed: () => context.go('/home'),
-            child: const Text('Return home'),
-          ),
+      errorBuilder: (context, _) => AppPage(
+        title: 'Khidmat',
+        navigation: false,
+        child: EmptyState(
+          title: 'This page is unavailable',
+          message: 'Return to your dashboard to continue.',
+          action: 'Return home',
+          onAction: () => context.go('/home'),
         ),
       ),
     );
-    if (widget.session == null) unawaited(_session.initialize());
+    unawaited(_language.load());
+    if (!_store.initialized) unawaited(_store.initialize());
   }
 
   @override
   void dispose() {
     _router.dispose();
-    _language.removeListener(_languageChanged);
     _language.dispose();
-    _state.dispose();
-    if (widget.session == null) _session.dispose();
+    if (widget.store == null) _store.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) => MultiProvider(
     providers: [
-      ChangeNotifierProvider<BackendSession>.value(value: _session),
-      ChangeNotifierProvider<AppState>.value(value: _state),
+      ChangeNotifierProvider<LocalStore>.value(value: _store),
       ChangeNotifierProvider<AppLanguage>.value(value: _language),
     ],
-    child: MaterialApp.router(
-      title: 'KHIDMAT',
-      locale: _language.locale,
-      supportedLocales: const [Locale('en'), Locale('ur')],
-      localizationsDelegates: GlobalMaterialLocalizations.delegates,
-      theme: AppTheme.darkTheme,
-      routerConfig: _router,
-      debugShowCheckedModeBanner: false,
+    child: Consumer<AppLanguage>(
+      builder: (_, language, _) => MaterialApp.router(
+        title: 'Khidmat',
+        locale: language.locale,
+        supportedLocales: const [Locale('en'), Locale('ur')],
+        localizationsDelegates: GlobalMaterialLocalizations.delegates,
+        theme: AppTheme.darkTheme,
+        routerConfig: _router,
+        debugShowCheckedModeBanner: false,
+      ),
     ),
   );
+}
+
+class _StorageScreen extends StatelessWidget {
+  const _StorageScreen();
+  @override
+  Widget build(BuildContext context) {
+    final store = context.watch<LocalStore>();
+    return AppPage(
+      title: 'Khidmat',
+      navigation: false,
+      child: Center(
+        child: store.error == null
+            ? const CircularProgressIndicator()
+            : SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    EmptyState(
+                      title: 'Phone storage needs attention',
+                      message: store.error!,
+                      action: 'Try again',
+                      icon: Icons.folder_outlined,
+                      onAction: store.initialize,
+                    ),
+                    TextButton(
+                      onPressed: () => context.push('/backup'),
+                      child: const LocalizedText('Restore backup'),
+                    ),
+                  ],
+                ),
+              ),
+      ),
+    );
+  }
 }

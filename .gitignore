@@ -51,6 +51,7 @@ android/key.properties
 android/local.properties
 release/*.apk
 release/*.aab
+release/*.zip
 .supabase/
 .temp/
 supabase/.temp/

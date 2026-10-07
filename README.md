@@ -1,102 +1,85 @@
 # Khidmat — خدمت
 
-Find local workers, request services and follow jobs in English or Urdu. Flutter provides the Android/iOS app; Supabase provides authentication, profiles, bookings, private photos and Realtime conversations.
+Khidmat keeps your worker contacts, service appointments and work records on your phone, in English or Urdu. Choose **Worker** to organize client jobs or **Work giver** to plan services with people you know.
 
-**Version 1.4.0, build 5002. Android 7.0+; iOS 15.0+.**
+**Version 2.0.0, build 5003. Android 7.0+; iOS 15.0+.**
 
-## Install Khidmat
+## Download on Android
 
-**Android phone:** [Download Khidmat for Android](https://github.com/tatheer583/Khidmat-App/releases/download/v1.4.0/khidmat-universal.apk). This one APK works on supported Android phones (about 55 MiB).
+[**Download Khidmat for Android**](https://github.com/tatheer583/Khidmat-App/releases/download/v2.0.0/khidmat-universal.apk)
 
-1. Tap the link on your phone and wait for the download to finish.
-2. Open **Files** or **Downloads** and tap **khidmat-universal.apk**.
-3. If asked, allow your browser to install apps. Go back and tap **Install**, then **Open**. Keep Play Protect on.
-4. If Android says the old Khidmat app conflicts, uninstall the old app once and install this one.
+1. Open this link in your phone’s browser and let the download finish.
+2. Open **Files → Downloads**, then tap **khidmat-universal.apk**.
+3. If prompted, allow installation from that browser, then tap **Install → Open**.
 
-**iPhone:** The Android APK does not work on iPhone. An iPhone download is not ready yet; the iOS app needs Apple signing before it can be offered through TestFlight or the App Store. The [iPhone setup details](docs/VERIFICATION.md) explain what is needed.
+There is one Android APK. It supports ARM64, older ARM32 phones and x86-64 devices. The release keeps the existing Khidmat signing key and uses a higher version code, so previous Khidmat-signed releases can update. If an old prototype has a different signature, back up anything you need before uninstalling it.
 
-**Before using sign-in and bookings:** The supplied Supabase service needs setup. Follow [the setup guide](docs/ACTIVATE-SUPABASE.md).
+**iPhone:** An iPhone download needs Apple signing and TestFlight/App Store distribution. The iOS project is included; an installable iPhone release has not been provided. An Android APK cannot install on iPhone.
 
-The signed update keeps the same Khidmat release certificate. If the original prototype conflicts with it, remove that prototype once before installing this update.
+## Start using the app
 
-## Required service activation
+1. Tap **Get started**, choose **Worker** or **Work giver**, and save your name and city. Workers can add profession, experience and work details. A phone number is optional for your own profile.
+2. In **Workers**, add actual people you know, with their phone number and service. Search your saved contacts by name, city, English, Urdu or Roman Urdu service words.
+3. Tap a worker to call, open SMS, share their details or plan an appointment. Agree on the time and price directly with that person.
+4. In **Jobs**, save the appointment, address, amount and notes. Update its status as the work progresses.
+5. Use the **اردو / English** button to change language. Urdu uses right-to-left layout and your choice survives restart.
 
-**The supplied hosted Supabase project still needs database activation and phone/SMS setup.** Installing a complete APK cannot create tables or enable SMS. Until services are ready, the app displays a connection/setup message and retry button. It does not fabricate workers or bookings.
+Your profile and job records are saved before the app reports success. Switching roles keeps records for both roles and shows the appropriate dashboard.
 
-Follow [the activation guide](docs/ACTIVATE-SUPABASE.md):
+## What removing the backend means
 
-1. Apply all three migrations, or run [setup.sql](supabase/setup.sql) once on a fresh database.
-2. Allow the auth redirect `com.khidmat.khidmat://login-callback/` and configure confirmation/password-reset emails.
-3. Enable phone authentication and connect an SMS provider. Until enabled, the app directs users to email.
-4. Run `pwsh ./scripts/Check-Backend.ps1`, then tap **Try again** in the app.
-5. Create and approve a worker listing, then book it from a separate customer account.
+**No Supabase account, server, database activation, login or connection setup is required.** The app’s records work without Wi-Fi or mobile data. Calling and SMS use your phone’s own apps and service. Sharing opens the phone’s sharing menu.
 
-[config/app.public.json](config/app.public.json) contains the supplied public connection and is embedded in local and CI builds. Publishable keys are intended for clients; database policies enforce access. Signing keys, passwords and administrative credentials are excluded from Git.
+Worker contacts are entered by you. Appointment statuses are your own records; saving or confirming one does not notify another phone. This version has no shared public worker directory, OTP/email authentication, in-app live chat, automatic booking acceptance or cross-phone synchronization. Those features require an online service.
 
-## Features
+The Supabase client, schema, setup screens, chat/authentication code and backend tests have been removed. Old connection preferences and cached Supabase login tokens are removed when this version opens. This change does not delete the remote Supabase project or import its records.
 
-- Phone OTP and email/password authentication, saved sessions, email confirmation callbacks and password recovery.
-- Required name, city, role, profession, experience and description; separate worker/work giver dashboards.
-- Persistent English/Urdu switching and Urdu right-to-left layout.
-- Approved worker discovery across eight categories, public profiles, prices and availability.
-- Server-authorized ten-minute quotes and date-specific appointment times, with duplicate reservation protection and idempotent booking retries.
-- Participant-only Realtime booking status, private chat and photo attachments.
-- Job acceptance, cancellation and progress; one verified customer review per completed booking.
-- Visible startup progress, bounded network requests and retry/sign-out recovery.
+## Backup and restore
 
-Each worker has one listing, approved by an operator. Payment is cash after service. Push notifications while the app is closed, GPS tracking and online payments are not implemented. Service matching uses English, Urdu and Roman Urdu keywords.
+Open **Profile → Backup and restore → Save backup** and save **khidmat-backup.json** to Files, Drive or another destination. Restore that file on another phone through **Restore backup**. The app validates the file and asks before replacing existing records.
+
+**Back up before uninstalling or clearing app storage.** Both actions remove local records. A backup includes names, phone numbers, addresses and notes; choose where to share it.
+
+The app uses a private JSON file, with queued writes and a previous copy for recovery. An unreadable primary file is preserved when recovery succeeds. If both copies are unreadable, the app provides retry and backup restore rather than erasing records.
 
 ## Build Android
 
-Toolchain: Flutter **3.47.6**, Dart **3.13.5**, Java **17**, Android SDK **36**, NDK **28.2.13676358**. PowerShell scripts use `.tools` when present. Retain the existing private signing key for updates.
+Use Flutter **3.47.6**, Dart **3.13.5**, Java **17**, Android SDK **36** and NDK **28.2.13676358**. Retain the existing private signing key when building updates.
 
 ```powershell
 flutter pub get
 flutter analyze --no-pub
 flutter test --no-pub
-pwsh ./scripts/Build-Android.ps1 -SplitPerAbi
 pwsh ./scripts/Build-Android.ps1
-pwsh ./scripts/Verify-Apk.ps1 -Apk release/khidmat-arm64-v8a.apk -SdkRoot C:/path/to/android-sdk
+pwsh ./scripts/Verify-Apk.ps1 -Apk release/khidmat-universal.apk -SdkRoot C:/path/to/android-sdk
 ```
 
-The script requires release signing and public connection settings. Use `-ConfigFile config/supabase.json` for a different project; this local override is ignored by Git. `-AllowUnconfigured` is only for an intentional developer setup build. `-AppBundle` produces a Play Store bundle, which is not a phone installer.
+The build script produces one signed universal APK. `-AppBundle` creates a Play Store bundle. No backend keys or Dart defines are needed.
 
-New developers can use [Install-Toolchain.ps1](scripts/Install-Toolchain.ps1) and [New-SigningKey.ps1](scripts/New-SigningKey.ps1). Do not replace an existing production key. CI build artifacts use a CI certificate and are separate from the signed downloadable releases.
+[Install-Toolchain.ps1](scripts/Install-Toolchain.ps1) installs the Windows tools. [New-SigningKey.ps1](scripts/New-SigningKey.ps1) is for a new developer’s first private signing key; keep the production key for published updates. CI uses its own test signing certificate.
 
-## Build and distribute iOS
+## Build iOS
 
-The project includes photo-library permission, auth URL handling, CocoaPods configuration and the Khidmat icon. iOS requires macOS/Xcode; an APK is never an iOS installer.
+Use macOS with Xcode and CocoaPods:
 
 ```sh
 flutter pub get
-flutter build ios --simulator --debug --dart-define-from-file=config/app.public.json
+flutter build ios --simulator --debug
 open ios/Runner.xcworkspace
 ```
 
-In Xcode, select **Runner → Signing & Capabilities → Team**, choose your Apple team, register the bundle ID and select an iPhone. For TestFlight/App Store distribution, configure your Apple Developer account and run:
+Select **Runner → Signing & Capabilities → Team** in Xcode and configure your Apple Developer team and provisioning. Then build and distribute a signed archive:
 
 ```sh
-flutter build ipa --release --dart-define-from-file=config/app.public.json
+flutter build ipa --release
 ```
 
-Upload the signed archive using Xcode Organizer or Transporter. No Apple signing identity/provisioning profile has been supplied here, so no phone-installable IPA is claimed. CI checks unsigned device compilation and simulator installation separately. See [Flutter's iOS distribution instructions](https://docs.flutter.dev/deployment/ios).
+Upload it through Xcode Organizer for TestFlight/App Store distribution. No Apple signing identity has been supplied for this project. See [Flutter’s iOS distribution instructions](https://docs.flutter.dev/deployment/ios).
 
-## Verification
+## Verification and source
 
-[Verification record](docs/VERIFICATION.md) distinguishes builds, emulator checks, disposable-backend tests and the hosted project.
+[Verification record](docs/VERIFICATION.md) records the tests, signed package checks and device limitations. The mobile workflow checks Android and iOS builds. Android runtime verification disables Wi-Fi/mobile data, creates a profile, saves a worker and appointment, and verifies the appointment after restarting the app. Public release checks install the downloaded APK on Android API 24 and 35 and test updates with the retained release signer.
 
-The [application/backend checks](https://github.com/tatheer583/Khidmat-App/actions/runs/37507029594) passed analysis, 16 app tests, 40 database assertions, 17 HTTP/WebSocket checks and the actual Flutter repository integration test. The [signed public-download checks](https://github.com/tatheer583/Khidmat-App/actions/runs/37509777306) passed installation and retained-language upgrades on Android 7 and Android 15. These backend tests use a disposable stack; activate the supplied hosted project before live use.
+Download the [Android/iOS source package](https://github.com/tatheer583/Khidmat-App/releases/download/v2.0.0/Khidmat-source.zip), or clone this repository. Private signing keys and generated build caches are excluded.
 
-- Flutter tests cover matching, phone normalization, role routing, Urdu, startup failures and password recovery routing.
-- After `npm ci` in `supabase/tests/pglite`, `node run.mjs` executes 40 database assertions.
-- CI starts a disposable Supabase stack and exercises real Auth, REST, Storage and Realtime WebSockets with separate accounts. These tests refuse production URLs.
-- Android CI installs the release build, checks visible UI, switches to Urdu and restarts it. Release verification downloads the published APKs, checks hashes/signatures and tests upgrades on API 24 and 35.
-- iOS CI compiles device/simulator builds and captures the simulator screen.
-
-Before inviting customers, use two real phones/accounts: confirm registration, complete both roles, approve a listing, book, receive/accept the job, exchange text/photos, restart both apps, complete the work and leave a review. Also test connectivity failure/recovery. Hosted SMS delivery and physical-phone compatibility require these real device checks.
-
-## Source
-
-Download the [complete Android/iOS source package](https://github.com/tatheer583/Khidmat-App/releases/download/v1.4.0/Khidmat-Supabase-source.zip), or clone this repository. The source package includes the corrected verification workflow and activation instructions; private signing files are excluded.
-
-`lib/` app; `android/` and `ios/` native projects; `supabase/migrations/` schema; `supabase/tests/` security/API tests; `scripts/` build/verification; `docs/` activation and evidence.
+`lib/` contains the app, `android/` and `ios/` the native projects, `test/` the behavior tests, and `scripts/` the build and release verification tools.

@@ -5,9 +5,14 @@ import 'urdu_strings.dart';
 
 class AppLanguage extends ChangeNotifier {
   Locale locale = const Locale('en');
+  bool _disposed = false;
+  bool saving = false;
+  int _generation = 0;
   Future<void> load() async {
+    final generation = _generation;
     try {
       final preferences = await SharedPreferences.getInstance();
+      if (_disposed || generation != _generation) return;
       locale = Locale(
         preferences.getString('app_language') == 'ur' ? 'ur' : 'en',
       );
@@ -18,10 +23,28 @@ class AppLanguage extends ChangeNotifier {
   }
 
   Future<void> toggle() async {
-    locale = Locale(locale.languageCode == 'ur' ? 'en' : 'ur');
+    if (saving) return;
+    saving = true;
     notifyListeners();
-    final preferences = await SharedPreferences.getInstance();
-    await preferences.setString('app_language', locale.languageCode);
+    try {
+      _generation++;
+      final next = Locale(locale.languageCode == 'ur' ? 'en' : 'ur');
+      final preferences = await SharedPreferences.getInstance();
+      if (!await preferences.setString('app_language', next.languageCode)) {
+        throw StateError('Language could not be saved. Please try again.');
+      }
+      if (_disposed) return;
+      locale = next;
+    } finally {
+      saving = false;
+      if (!_disposed) notifyListeners();
+    }
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
   }
 }
 
@@ -110,7 +133,25 @@ class LanguageButton extends StatelessWidget {
   const LanguageButton({super.key});
   @override
   Widget build(BuildContext context) => TextButton.icon(
-    onPressed: () => context.read<AppLanguage>().toggle(),
+    onPressed: context.watch<AppLanguage>().saving
+        ? null
+        : () async {
+            try {
+              await context.read<AppLanguage>().toggle();
+            } catch (_) {
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      context.tr(
+                        'Language could not be saved. Please try again.',
+                      ),
+                    ),
+                  ),
+                );
+              }
+            }
+          },
     icon: const Icon(Icons.language),
     label: Text(
       Localizations.localeOf(context).languageCode == 'ur' ? 'English' : 'اردو',

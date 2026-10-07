@@ -1,57 +1,23 @@
 # Verification record
 
-Date: 2026-10-07. Application: Khidmat 1.4.0, Android build 5002.
+Khidmat 2.0.0, Android build 5003. Date: 2026-10-07.
 
-This update refreshes the Khidmat logo, welcome screen and connection/setup recovery in English and Urdu, and removes unused Flutter dependencies. The release APK and published download both passed signature, checksum and Android emulator installation checks.
+This version removes Supabase and stores phone-owned profiles, worker contacts and appointment records in a private JSON file. There are no network requests in the application and no server readiness gate.
 
-## Application and backend checks
+## Checks for this release
 
-[The 1.4.0 application workflow](https://github.com/tatheer583/Khidmat-App/actions/runs/37520978422) passed for commit `127cd28`.
+The release is being verified. Final build details and workflow evidence will be added after the checks finish.
 
-- Flutter 3.47.6 / Dart 3.13.5 analysis passed without issues. All 16 application tests passed, including startup recovery, bounded HTTP requests, role routing and English/Urdu behavior.
-- All three database migrations applied to a disposable full Supabase stack. All 40 pgTAP assertions passed, covering pricing, booking authorization, duplicate reservations, date availability, private data, profiles and readiness.
-- All 17 HTTP/WebSocket checks passed against that stack: real authentication and session refresh, worker booking notifications, private chat, image upload/download, signed URLs, status updates, and logout.
-- A separate integration test passed using the application's actual Flutter repository against Auth, PostgREST, Storage and Realtime. It also tests changes occurring immediately after the first data snapshot and subsequent chat/photo/status delivery.
-- The Android CI release build installed and launched on an Android 15 emulator. The smoke check verifies a running process, usable UI, language switching and preference persistence after restart. CI builds use a separate test signer; the public release signer is checked below.
-- The iOS unsigned device build and simulator build passed on macOS. The simulator installed and launched the app and captured its startup screen. This verifies compilation and simulator startup; it does not provide an installable, signed iPhone IPA.
+The behavior suite covers persistence across restarts, serialized concurrent writes, failed writes, backup validation/restore, damaged-file recovery, contact deletion, appointment conflicts, role-specific records, legacy-token cleanup, service matching, form entry and Urdu layout/persistence.
 
-The app now refreshes data when the database subscription is ready and after reconnection. A channel joining is insufficient evidence that Postgres change delivery has started; the integration tests wait for subscription readiness and verify delivery over actual WebSockets.
+The Android release is checked for the package ID, version, complete compiled application/engine files, retained signing certificate and 16 KB native-library alignment. The public download workflow verifies checksums and installs the actual universal APK on Android API 24 and 35. Runtime checks disable Wi-Fi and mobile data, switch languages and save/reopen a profile, worker and appointment.
 
-## Signed Android download
+The iOS workflow compiles unsigned physical-device and simulator builds and installs/launches the simulator app. This does not supply an installable signed iPhone release.
 
-The universal APK was built locally from the application code using `config/app.public.json`. It contains its compiled Dart application and Flutter engine. Android `apksigner`, package parsing and 16 KB ZIP alignment checks passed locally.
+## Limits
 
-- Package: `com.khidmat.khidmat`; version `1.4.0`; version code `5002`.
-- Minimum Android API 24 (Android 7.0), target API 36.
-- Retained signing certificate SHA-256: `7c680b76c6d8ba235ebc72b68b05038ecaddb0d38e7d776f977695db2cdacebd`.
+No physical Android or iOS phone is connected locally. Phone calls, carrier SMS, file destinations and third-party sharing apps need a final check on the owner’s phone.
 
-| File | Bytes | What it supports |
-| --- | ---: | --- |
-| khidmat-universal.apk | 57,447,550 | ARM64, ARM32 and x86-64 Android devices |
+Data is local. These checks do not establish shared realtime behavior between phones, identity verification, OTP delivery or hosted marketplace functionality.
 
-`release/SHA256SUMS` and `release/artifacts.json` contain the exact hash, size and verification results. The single Android download link is in [README.md](../README.md). Source packages exclude private signing keys, signing passwords and local connection files.
-
-This release keeps the same version code across its universal package and retains the Khidmat release certificate, so prior Khidmat-signed versions can update. The original prototype used a different Android Debug certificate and must be uninstalled once if Android reports a signature conflict.
-
-[The 1.4.0 public-release verification run](https://github.com/tatheer583/Khidmat-App/actions/runs/37520992168) passed on Android API 24 and 35. Both jobs downloaded the published APK, verified its SHA-256, signature, version and alignment, then installed and launched it. The test switched English/Urdu and confirmed Urdu persisted during an update from the prior Khidmat-signed build.
-
-An independent download of the public APK returned the exact published file size and SHA-256 recorded in `release/artifacts.json`.
-
-The API 24 and 35 evidence includes the clear setup/retry screen shown in English and Urdu. The supplied backend is still awaiting activation; installation success does not establish successful hosted login or booking. The release workflow explicitly installs available platform tools.
-
-## Supplied hosted project
-
-The project at `https://akgmokmwadflhzxallxf.supabase.co` responds to Auth settings requests with the supplied publishable key. **Email authentication is enabled; phone authentication is disabled.** The readiness RPC and application tables are absent, so hosted database/storage/realtime readiness currently fails.
-
-No hosted migrations were applied in this session. A publishable key does not grant database administration. The successful backend checks above used a disposable Supabase stack and do not establish that the supplied production project is activated.
-
-Follow [the activation guide](ACTIVATE-SUPABASE.md): apply `supabase/setup.sql` for a fresh project, or apply only the missing migrations in order; configure the native auth callback and email/SMS delivery; then approve real worker listings. Re-run `scripts/Check-Backend.ps1` and complete the two-account device checklist in README.
-
-## Checks still requiring owner access or devices
-
-- Activate the hosted database and storage, then verify email delivery and phone OTP with real recipients.
-- Complete onboarding, booking, chat, photo upload and status updates with two real accounts on physical devices against that hosted project.
-- Confirm installation on the user's own phone; no physical Android device was connected locally.
-- Select an Apple signing team and provisioning, then produce and test a signed iPhone build/TestFlight release. The iOS project requires iOS 15 or later.
-
-The app intentionally shows a translated connection/retry screen while backend services are unavailable. It does not replace missing data with demonstration bookings or claim successful operations when requests fail.
+Apple signing credentials, an Apple Developer team and provisioning are needed to distribute an iPhone release. Uninstalling or clearing app storage deletes local records; export a backup first.

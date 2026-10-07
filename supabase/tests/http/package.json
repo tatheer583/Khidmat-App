@@ -1,1 +1,0 @@
-{"private":true,"type":"module","scripts":{"test":"node integration.mjs"},"dependencies":{"@supabase/supabase-js":"2.117.2"}}

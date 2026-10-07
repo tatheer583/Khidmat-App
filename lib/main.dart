@@ -11,6 +11,6 @@ Future<void> main() async {
       systemNavigationBarColor: Color(0xFF080E0C),
     ),
   );
-  // Paint a usable loading screen before any disk or network operation.
+  // Paint the loading screen before opening the phone's saved records.
   runApp(const KhidmatApp());
 }

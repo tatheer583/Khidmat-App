@@ -8,9 +8,11 @@ import xml.etree.ElementTree as ET
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("apk", type=pathlib.Path)
-parser.add_argument("--expected-version", type=int, default=5002)
+parser.add_argument("--expected-version", type=int, default=5003)
 parser.add_argument("--initial-language", choices=("en", "ur"))
 parser.add_argument("--evidence-name", default="current")
+parser.add_argument("--offline", action="store_true")
+parser.add_argument("--exercise-local-flow", action="store_true")
 arguments = parser.parse_args()
 apk = arguments.apk.resolve(strict=True)
 evidence = pathlib.Path("smoke-evidence") / arguments.evidence_name
@@ -38,7 +40,7 @@ def capture(name):
 
 def labels(xml):
     try:
-        return [node.get("text", "") + node.get("content-desc", "") for node in ET.fromstring(xml).iter("node")]
+        return [node.get("text", "") + node.get("content-desc", "") + node.get("hint", "") for node in ET.fromstring(xml).iter("node")]
     except ET.ParseError:
         return []
 
@@ -87,8 +89,87 @@ def launch():
     assert "Error:" not in output and "Error type" not in output, output
     print(output)
 
+def wait_for_label(name, label):
+    deadline = time.monotonic() + 40
+    while time.monotonic() < deadline:
+        xml = hierarchy(name)
+        if has_label(xml, label):
+            assert adb("shell", "pidof", package).strip(), "App process died"
+            return xml
+        time.sleep(1)
+    raise AssertionError("Screen did not show: " + label)
+
+def scroll():
+    dimensions = re.findall(r"(\d+)x(\d+)", adb("shell", "wm", "size"))
+    width, height = map(int, dimensions[-1])
+    adb("shell", "input", "swipe", str(width // 2), str(height * 3 // 4),
+        str(width // 2), str(height // 3), "350")
+    time.sleep(0.5)
+
+def tap_visible(label):
+    for _ in range(10):
+        xml = hierarchy("controls")
+        if has_label(xml, label):
+            tap_label(xml, label)
+            time.sleep(0.5)
+            return
+        scroll()
+    raise AssertionError("Control did not become visible: " + label)
+
+def fill_input(label, value):
+    for _ in range(10):
+        xml = hierarchy("form")
+        for node in ET.fromstring(xml).iter("node"):
+            description = node.get("content-desc", "") + node.get("hint", "") + node.get("text", "")
+            if node.get("class") == "android.widget.EditText" and label in description:
+                x1, y1, x2, y2 = map(int, re.findall(r"\d+", node.get("bounds", "")))
+                adb("shell", "input", "tap", str((x1 + x2) // 2), str((y1 + y2) // 2))
+                adb("shell", "input", "text", value.replace(" ", "%s"))
+                adb("shell", "input", "keyevent", "KEYCODE_BACK")
+                time.sleep(0.5)
+                return
+        scroll()
+    raise AssertionError("Editable field did not become visible: " + label)
+
+def exercise_local_flow():
+    xml = hierarchy("local-flow-start")
+    if has_label(xml, "English"):
+        tap_label(xml, "English")
+        wait_for_screen("local-flow-english", "en")
+    tap_visible("Get started")
+    wait_for_label("profile-form", "Your name")
+    fill_input("Your name", "Ali Test")
+    fill_input("City", "Lahore")
+    tap_visible("Save profile")
+    wait_for_label("dashboard", "Work giver dashboard")
+    capture("dashboard")
+    tap_visible("Workers")
+    tap_visible("Add worker")
+    wait_for_label("worker-form", "Worker name")
+    fill_input("Worker name", "Aslam Test")
+    fill_input("Phone number", "03001234567")
+    tap_visible("Save worker")
+    wait_for_label("worker-saved", "Worker details")
+    capture("worker-saved")
+    tap_visible("Plan an appointment")
+    wait_for_label("job-form", "Add job")
+    fill_input("Work address", "Garden Town Lahore")
+    tap_visible("Save job")
+    wait_for_label("job-saved", "Job details")
+    capture("job-saved")
+    launch()
+    wait_for_label("records-restart", "Work giver dashboard")
+    tap_visible("Jobs")
+    xml = wait_for_label("retained-job", "Aslam Test")
+    assert has_label(xml, "Planned"), "Appointment did not persist after process restart"
+    capture("retained-job")
+    print("PASS: Without a network, created profile/contact/job and retained the appointment after restart.")
+
 try:
     print(adb("install", "-r", str(apk)).strip())
+    if arguments.offline:
+        adb("shell", "svc", "wifi", "disable")
+        adb("shell", "svc", "data", "disable")
     package_info = adb("shell", "dumpsys", "package", package)
     (evidence / "package.txt").write_text(package_info, encoding="utf8")
     assert re.search(r"\bversionCode=" + str(arguments.expected_version) + r"\b", package_info), "Wrong APK version installed"
@@ -107,6 +188,8 @@ try:
     wait_for_screen("restart", "ur")
     capture("restart")
     print("PASS: APK installs, launches usable UI, switches Urdu and retains language through restart/upgrade.")
+    if arguments.exercise_local_flow:
+        exercise_local_flow()
 finally:
     # Retain diagnostics on failed installs and launches as well as passing runs.
     try:
