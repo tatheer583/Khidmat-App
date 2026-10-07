@@ -40,8 +40,8 @@ jobs:
             curl --fail --location --retry 3 --retry-all-errors --connect-timeout 20 --max-time 180 "$BASE/$FILE" -o "$FILE"
           done
           python3 ../scripts/verify_release.py .
-          curl --fail --location --retry 3 --retry-all-errors --connect-timeout 20 --max-time 180 "https://raw.githubusercontent.com/tatheer583/Khidmat-App/aa5f31387e187c044849c3fff929ff4d87936164/release/khidmat-x86_64.apk" -o previous.apk
-          echo 'b68f2ed7a13b3b56dfe21afb247107a6f654382e8cf29be3e2d0975b1c80377a  previous.apk' | sha256sum --check -
+          curl --fail --location --retry 3 --retry-all-errors --connect-timeout 20 --max-time 180 "https://github.com/tatheer583/Khidmat-App/releases/download/v1.4.0/khidmat-universal.apk" -o previous.apk
+          echo '25d56ce175642dca8916754da70873af93f86e07554a53d75f58364c4911f72a  previous.apk' | sha256sum --check -
       - name: Verify retained release signing certificate
         run: |
           SIGNER="$ANDROID_HOME/build-tools/36.0.0/apksigner"
@@ -68,7 +68,7 @@ jobs:
           target: google_apis
           disable-animations: true
           script: |
-            python3 scripts/smoke_android.py downloaded/previous.apk --expected-version 4003 --evidence-name previous
+            python3 scripts/smoke_android.py downloaded/previous.apk --expected-version 5002 --evidence-name previous
             python3 scripts/smoke_android.py downloaded/khidmat-universal.apk --offline --exercise-local-flow --initial-language ur --evidence-name universal-upgrade
       - uses: actions/upload-artifact@v4
         if: always()

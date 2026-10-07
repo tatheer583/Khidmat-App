@@ -81,6 +81,9 @@ void main() {
     expect(find.text('OTP'), findsNothing);
     await tester.tap(find.text('Get started'));
     await tester.pumpAndSettle();
+    final semantics = tester.ensureSemantics();
+    expect(find.bySemanticsLabel(RegExp('Your name')), findsWidgets);
+    semantics.dispose();
     await save(tester, 'Save profile');
     tester
         .state<ScrollableState>(

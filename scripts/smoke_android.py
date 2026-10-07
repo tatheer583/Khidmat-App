@@ -117,12 +117,17 @@ def tap_visible(label):
     raise AssertionError("Control did not become visible: " + label)
 
 def fill_input(label, value):
+    identifier = "khidmat.input." + re.sub(r"[^a-z0-9]+", "_", label.lower())
     for _ in range(10):
         xml = hierarchy("form")
         for node in ET.fromstring(xml).iter("node"):
             description = node.get("content-desc", "") + node.get("hint", "") + node.get("text", "")
-            if node.get("class") == "android.widget.EditText" and label in description:
-                x1, y1, x2, y2 = map(int, re.findall(r"\d+", node.get("bounds", "")))
+            if label not in description and node.get("resource-id") != identifier:
+                continue
+            fields = [item for item in node.iter("node") if item.get("class") == "android.widget.EditText"]
+            if fields:
+                field = fields[0]
+                x1, y1, x2, y2 = map(int, re.findall(r"\d+", field.get("bounds", "")))
                 adb("shell", "input", "tap", str((x1 + x2) // 2), str((y1 + y2) // 2))
                 adb("shell", "input", "text", value.replace(" ", "%s"))
                 adb("shell", "input", "keyevent", "KEYCODE_BACK")
@@ -137,7 +142,7 @@ def exercise_local_flow():
         tap_label(xml, "English")
         wait_for_screen("local-flow-english", "en")
     tap_visible("Get started")
-    wait_for_label("profile-form", "Your name")
+    wait_for_label("profile-form", "Create your profile")
     fill_input("Your name", "Ali Test")
     fill_input("City", "Lahore")
     tap_visible("Save profile")

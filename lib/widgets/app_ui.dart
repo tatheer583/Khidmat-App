@@ -244,16 +244,22 @@ Widget formField(
   int maxLength = 100,
 }) => Padding(
   padding: const EdgeInsets.only(bottom: 16),
-  child: TextFormField(
-    controller: controller,
-    validator: validator,
-    errorBuilder: (_, error) => LocalizedText(error),
-    decoration: localizedDecoration(context, labelText: label),
-    keyboardType: keyboard,
-    maxLines: lines,
-    maxLength: maxLength,
-    textInputAction: lines == 1
-        ? TextInputAction.next
-        : TextInputAction.newline,
+  child: Semantics(
+    identifier:
+        'khidmat.input.${label.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_')}',
+    label: context.tr(label),
+    textField: true,
+    child: TextFormField(
+      controller: controller,
+      validator: validator,
+      errorBuilder: (_, error) => LocalizedText(error),
+      decoration: localizedDecoration(context, labelText: label),
+      keyboardType: keyboard,
+      maxLines: lines,
+      maxLength: maxLength,
+      textInputAction: lines == 1
+          ? TextInputAction.next
+          : TextInputAction.newline,
+    ),
   ),
 );
