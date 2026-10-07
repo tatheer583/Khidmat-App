@@ -170,6 +170,7 @@ class _JobFormScreenState extends State<JobFormScreen> {
                   const SizedBox(height: 20),
                   if (_role == AccountRole.customer && workers.isNotEmpty) ...[
                     DropdownButtonFormField<String>(
+                      isExpanded: true,
                       initialValue: workers.any((w) => w.id == _contactId)
                           ? _contactId
                           : '',
@@ -222,6 +223,7 @@ class _JobFormScreenState extends State<JobFormScreen> {
                     validator: (value) => phoneValidator(value, optional: true),
                   ),
                   DropdownButtonFormField<String>(
+                    isExpanded: true,
                     key: ValueKey(_service),
                     initialValue: _service,
                     decoration: localizedDecoration(

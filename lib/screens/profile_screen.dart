@@ -127,6 +127,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           if (_role == AccountRole.worker) ...[
             DropdownButtonFormField<String>(
+              isExpanded: true,
               initialValue: _profession,
               decoration: localizedDecoration(context, labelText: 'Profession'),
               items: serviceCategories

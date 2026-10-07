@@ -109,6 +109,7 @@ class _WorkerFormScreenState extends State<WorkerFormScreen> {
                   maxLength: 30,
                 ),
                 DropdownButtonFormField<String>(
+                  isExpanded: true,
                   initialValue: _category,
                   decoration: localizedDecoration(
                     context,

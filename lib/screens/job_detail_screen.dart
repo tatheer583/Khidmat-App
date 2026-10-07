@@ -74,6 +74,7 @@ class JobDetailScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<JobStatus>(
+                  isExpanded: true,
                   key: ValueKey((job.status, store.busy)),
                   initialValue: job.status,
                   decoration: localizedDecoration(
