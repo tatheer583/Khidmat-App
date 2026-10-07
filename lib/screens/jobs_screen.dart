@@ -71,8 +71,6 @@ class _JobsScreenState extends State<JobsScreen> {
                       title: 'No jobs here yet',
                       message:
                           'Save an appointment to keep the date, address, price and progress together.',
-                      action: 'Add job',
-                      onAction: () => context.push('/jobs/new'),
                     ),
                   )
                 : ListView.builder(

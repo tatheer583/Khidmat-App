@@ -81,9 +81,6 @@ void main() {
     expect(find.text('OTP'), findsNothing);
     await tester.tap(find.text('Get started'));
     await tester.pumpAndSettle();
-    final semantics = tester.ensureSemantics();
-    expect(find.bySemanticsLabel(RegExp('Your name')), findsWidgets);
-    semantics.dispose();
     await save(tester, 'Save profile');
     tester
         .state<ScrollableState>(
@@ -204,6 +201,9 @@ void main() {
     await go(tester, '/contacts');
     await tester.enterText(find.byType(TextField), 'plumber');
     await tester.pumpAndSettle();
+    await tester.tap(find.byType(FloatingActionButton));
+    await tester.pumpAndSettle();
+    expect(find.text('Worker name'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

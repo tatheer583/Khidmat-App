@@ -247,8 +247,6 @@ Widget formField(
   child: Semantics(
     identifier:
         'khidmat.input.${label.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '_')}',
-    label: context.tr(label),
-    textField: true,
     child: TextFormField(
       controller: controller,
       validator: validator,

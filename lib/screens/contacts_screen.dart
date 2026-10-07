@@ -107,8 +107,6 @@ class _ContactsScreenState extends State<ContactsScreen> {
                       message: store.workers.isEmpty
                           ? 'Save a real worker contact to call them, send requests and plan jobs.'
                           : 'Try another name, city or service.',
-                      action: store.workers.isEmpty ? 'Add worker' : null,
-                      onAction: () => context.push('/contacts/new'),
                     ),
                   )
                 : ListView.builder(

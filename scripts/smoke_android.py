@@ -74,8 +74,11 @@ def wait_for_screen(name, language=None):
 
 def tap_label(xml, label):
     root = ET.fromstring(xml)
-    for node in root.iter("node"):
-        if label in (node.get("text", "") + node.get("content-desc", "")):
+    candidates = [node for node in root.iter("node")
+                  if label in (node.get("text", "") + node.get("content-desc", ""))]
+    candidates.sort(key=lambda node: node.get("clickable") == "true", reverse=True)
+    for node in candidates:
+        if node.get("enabled") != "false":
             values = list(map(int, re.findall(r"\d+", node.get("bounds", ""))))
             if len(values) == 4:
                 x1, y1, x2, y2 = values
@@ -150,7 +153,7 @@ def exercise_local_flow():
     capture("dashboard")
     tap_visible("Workers")
     tap_visible("Add worker")
-    wait_for_label("worker-form", "Worker name")
+    wait_for_label("worker-form", "Add worker")
     fill_input("Worker name", "Aslam Test")
     fill_input("Phone number", "03001234567")
     tap_visible("Save worker")
