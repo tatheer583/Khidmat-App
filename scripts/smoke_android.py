@@ -176,8 +176,13 @@ def exercise_local_flow():
 try:
     print(adb("install", "-r", str(apk)).strip())
     if arguments.offline:
-        adb("shell", "svc", "wifi", "disable")
+        # API 24 emulator images have no Wi-Fi service. Cellular data can
+        # still be disabled; also disconnect the emulator's virtual radio.
+        adb("shell", "svc", "wifi", "disable", check=False)
         adb("shell", "svc", "data", "disable")
+        adb("emu", "gsm", "data", "off", check=False)
+        (evidence / "connectivity.txt").write_text(
+            adb("shell", "dumpsys", "connectivity", check=False), encoding="utf8")
     package_info = adb("shell", "dumpsys", "package", package)
     (evidence / "package.txt").write_text(package_info, encoding="utf8")
     assert re.search(r"\bversionCode=" + str(arguments.expected_version) + r"\b", package_info), "Wrong APK version installed"
