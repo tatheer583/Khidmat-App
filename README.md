@@ -80,7 +80,7 @@ Upload it through Xcode Organizer for TestFlight/App Store distribution. No Appl
 
 ## Verification and source
 
-[Verification record](docs/VERIFICATION.md) records the tests, signed package checks and device limitations. The mobile workflow checks Android and iOS builds. Android runtime verification disables Wi-Fi/mobile data, creates a profile, saves a worker and appointment, and verifies the appointment after restarting the app. Public release checks install the downloaded APK on Android API 24 and 35 and test updates with the retained release signer.
+[Verification record](docs/VERIFICATION.md) records the tests, signed package checks and device limitations. Analysis and all 21 behavior tests passed; Android and unsigned iOS builds passed. [Published APK verification](https://github.com/tatheer583/Khidmat-App/actions/runs/37625620405) passed on Android 7.0 and Android 15: both installed the public download as an update from version 1.4.0, retained Urdu, saved a profile, worker and appointment offline, and reopened the appointment after restarting the app.
 
 Download the [Android/iOS source package](https://github.com/tatheer583/Khidmat-App/releases/download/v2.0.0/Khidmat-source.zip), or clone this repository. Private signing keys and generated build caches are excluded.
 

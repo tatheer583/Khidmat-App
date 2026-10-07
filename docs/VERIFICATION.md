@@ -29,7 +29,9 @@ Windows application control blocked the local Flutter x86-64 compiler. The relea
 - ZIP integrity, APK signature, package/version parsing and 16 KB native-library alignment passed.
 - The release manifest has no Internet permission. No backend keys or configuration are embedded.
 
-The single APK and exact metadata/checksum are distributed through the GitHub release. The [public-download workflow](https://github.com/tatheer583/Khidmat-App/actions/workflows/verify-release.yml) checks the published file on Android API 24 and 35, including updates from version 1.4.0 and saving/reopening records with networking disabled.
+The single APK and exact metadata/checksum are distributed through the GitHub release. An independent anonymous download of the complete published APK matched the size and SHA-256 above.
+
+[Published APK verification](https://github.com/tatheer583/Khidmat-App/actions/runs/37625620405) passed on Android 7.0 (API 24) and Android 15 (API 35). Both emulators installed the previous signed version 1.4.0, updated to the downloaded 2.0.0 APK without uninstalling, retained Urdu, created a profile, worker contact and appointment with networking disabled, then reopened the saved appointment after a process restart. On API 24, where the emulator image has no Wi-Fi service, the test disables mobile data and the emulator radio.
 
 ## Source and limits
 
