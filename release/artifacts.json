@@ -1,0 +1,17 @@
+{
+  "file": "khidmat-universal.apk",
+  "bytes": 55735587,
+  "sha256": "d87d91806d8bb1efb105119c62c89709f3f28be0f20fe04f99bdf5000a192fc4",
+  "versionName": "2.0.0",
+  "versionCode": 5003,
+  "minimumAndroidApi": 24,
+  "signerSha256": "7c680b76c6d8ba235ebc72b68b05038ecaddb0d38e7d776f977695db2cdacebd",
+  "nativeLibraries": [
+    "lib/arm64-v8a/libapp.so",
+    "lib/armeabi-v7a/libapp.so",
+    "lib/x86_64/libapp.so"
+  ],
+  "signatureVerified": true,
+  "alignment16KBVerified": true,
+  "internetPermission": false
+}
