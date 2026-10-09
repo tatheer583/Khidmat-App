@@ -5,7 +5,7 @@ $repoRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $stagingRoot = Join-Path $repoRoot ('.build-tools/package-' + [guid]::NewGuid().ToString('N'))
 [IO.Directory]::CreateDirectory($stagingRoot) | Out-Null
 # Explicit source allowlist excludes SDKs, generated files and signing secrets.
-foreach ($relative in @('lib','android','ios','scripts','test','docs','.github','supabase','config/marketplace.example.json','config/live-tests.example.json',
+foreach ($relative in @('lib','assets','android','ios','scripts','test','docs','.github','supabase','config/marketplace.example.json','config/live-tests.example.json',
   'pubspec.yaml','pubspec.lock','analysis_options.yaml','.gitignore','README.md')) {
   $source = Join-Path $repoRoot $relative
   if (Test-Path -LiteralPath $source -PathType Container) {

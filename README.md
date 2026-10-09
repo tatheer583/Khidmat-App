@@ -2,7 +2,7 @@
 
 Flutter service marketplace for Pakistan, with the existing private offline worker-contact and appointment organizer preserved. English and Urdu share the same flows; Urdu uses right-to-left layouts.
 
-**Development version 2.1.0+5004.** The marketplace implementation is integrated, but it has **not been deployed or verified with live SMS/push providers**. An unconfigured build explains that the online service is unavailable and still opens the private organizer. No worker accounts, reviews, distances or successful OTP responses are fabricated.
+**Development version 2.1.1+5005.** Explore now includes 18 service types and their skills even before backend setup, with a redesigned English/Urdu marketplace and illustrative worker photography. The marketplace has **not been deployed or verified with live SMS/push providers**. Real worker discovery, phone login and bookings require the operator's configured backend and genuine published worker accounts. No worker accounts, prices, reviews, distances or successful OTP responses are fabricated.
 
 ## What is implemented
 
@@ -30,9 +30,11 @@ For a configured marketplace, follow [the backend and provider setup instruction
 flutter run --dart-define-from-file=config/marketplace.json
 ```
 
+The shorter [go-live checklist](docs/GO_LIVE_CHECKLIST.md) gives the dashboard steps and required manual decisions. Run `node scripts/verify_marketplace_backend.mjs` to check public configuration, deployed catalogue/search APIs and whether phone sign-in is enabled. This check never sends an OTP or changes accounts; enabled settings do not prove SMS delivery. See [product research and design decisions](docs/PRODUCT_RESEARCH_20261009.md).
+
 Supabase SMS credentials and Firebase service accounts belong in server/provider secret storage. Never put them in Dart defines, source control or chat. Phone OTP requires a real provider enabled for Pakistani numbers. Push is disabled until configured and the signed-in user explicitly opts in. Set a real `KHIDMAT_SUPPORT_EMAIL` before public distribution.
 
-Without backend configuration, run `flutter run` and select **Private organizer**. Your local records do not require an online account. Shared marketplace writes require connectivity; an unsent request is never presented as synchronized.
+Without backend configuration, you can browse/search service types and skills, open service details, choose a manual area, and select **Private organizer** for your own saved records. Local records do not require an online account. Shared marketplace writes require connectivity; an unsent request is never presented as synchronized.
 
 ## Backend verification
 
@@ -62,7 +64,7 @@ pwsh ./scripts/Build-Android.ps1 -ConfigurationFile config/marketplace.json
 pwsh ./scripts/Verify-Apk.ps1 -Apk release/khidmat-universal.apk -SdkRoot C:/path/to/android-sdk
 ```
 
-For an **undistributed QA build only**, explicitly set `KHIDMAT_TEST_BUILD=true` before `flutter build apk --release`. This produces a debug-certificate-signed APK and cannot replace the published production-signed app as an update. Clear that flag before production builds.
+For an **undistributed QA build only**, explicitly set `KHIDMAT_TEST_BUILD=true` before `flutter build apk --release`. This creates **Khidmat QA** (`com.khidmat.khidmat.qa`) with separate device storage so it installs beside the existing Khidmat app and preserves its records. It is debug-certificate-signed and cannot update the production app or the earlier same-package QA build. Keep those installations; use an explicit private-organizer export/import if you choose to transfer local records. Clear the flag before production builds. If testing push, register this separate Android package with Firebase and configure its public app settings.
 
 The signed Android workflow requires public repository variables matching the example configuration, an operational support email, and the existing encrypted Android signing secrets. It validates public configuration, scans source for server credentials, and retains signer/version/alignment checks. Internet is required; background location remains prohibited. CI test builds exercise the offline organizer without backend credentials.
 

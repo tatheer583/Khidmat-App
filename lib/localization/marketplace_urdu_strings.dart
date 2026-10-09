@@ -1,6 +1,84 @@
 /// Marketplace labels and messages; user-written names, descriptions and reviews
 /// are kept in their original language when no translation key matches.
 const Map<String, String> marketplaceUrduStrings = {
+  'Services': 'خدمات',
+  'Skilled hands. Better days.': 'ہنرمند ہاتھ۔ آسان زندگی۔',
+  'Find the right help, close to home.':
+      'اپنے قریب، کام کے لیے مناسب ہنرمند تلاش کریں۔',
+  'YOUR NEIGHBOURHOOD': 'آپ کا علاقہ',
+  'Everyday services': 'روزمرہ کی خدمات',
+  'Good help for the little fixes and the bigger jobs.':
+      'چھوٹی مرمت سے بڑے کام تک، مناسب مدد حاصل کریں۔',
+  'Services matching your search': 'آپ کی تلاش کے مطابق خدمات',
+  'Search a service or skill': 'خدمت یا مہارت تلاش کریں',
+  'Clear search': 'تلاش صاف کریں',
+  'Clear selection': 'انتخاب ختم کریں',
+  'Looking for': 'تلاش ہے',
+  'View all': 'سب دیکھیں',
+  'What can we help with?': 'آپ کو کس کام میں مدد چاہیے؟',
+  'From everyday fixes to bigger projects, find the right skill for the job.':
+      'روزمرہ کی مرمت سے بڑے منصوبوں تک، کام کے لیے مناسب مہارت تلاش کریں۔',
+  'No services match this search': 'اس تلاش کے مطابق کوئی خدمت نہیں ملی',
+  'Try another skill or browse all services.':
+      'دوسری مہارت تلاش کریں یا تمام خدمات دیکھیں۔',
+  'Show all services': 'تمام خدمات دکھائیں',
+  'Choose a skill to understand the work, then search for workers in your area.':
+      'کام سمجھنے کے لیے مہارت منتخب کریں، پھر اپنے علاقے میں کاریگر تلاش کریں۔',
+  'Service guide available offline. Worker profiles and bookings need a connection.':
+      'خدمات کی رہنمائی آف لائن دستیاب ہے۔ کاریگر کی پروفائل اور بکنگ کے لیے کنکشن ضروری ہے۔',
+  'Service details': 'خدمت کی تفصیل',
+  'This service is unavailable': 'یہ خدمت دستیاب نہیں',
+  'Choose the work you need': 'اپنا مطلوبہ کام منتخب کریں',
+  'Pick a skill for a more focused worker search, or explore the whole profession.':
+      'مناسب کاریگر تلاش کرنے کے لیے مہارت منتخب کریں یا پورا پیشہ دیکھیں۔',
+  'All skills': 'تمام مہارتیں',
+  'Find workers': 'کاریگر تلاش کریں',
+  'You can explore every service now. Live worker search will be available when the marketplace is connected.':
+      'ابھی تمام خدمات دیکھ سکتے ہیں۔ مارکیٹ پلیس کے کنکشن پر کاریگر کی تلاش دستیاب ہوگی۔',
+  'Before you book': 'بکنگ سے پہلے',
+  'Explain the task': 'کام کی وضاحت کریں',
+  'Describe the problem, the work needed and your preferred time.':
+      'مسئلہ، مطلوبہ کام اور مناسب وقت بتائیں۔',
+  'Agree on the scope': 'کام کی حدود طے کریں',
+  'Confirm whether the price includes the visit, labour, materials and any follow-up work.':
+      'طے کریں کہ قیمت میں آنے، مزدوری، سامان اور دوبارہ کام کرنے کے اخراجات شامل ہیں یا نہیں۔',
+  'Choose with confidence': 'اطمینان سے انتخاب کریں',
+  'Compare real profiles, experience and completed-job reviews. Confirm the total price directly with the worker.':
+      'اصل پروفائل، تجربہ اور مکمل کاموں کے جائزے دیکھیں۔ کاریگر سے براہ راست کل قیمت طے کریں۔',
+  'I offer this service': 'میں یہ خدمت فراہم کرتا ہوں',
+  'Explore other services': 'دیگر خدمات دیکھیں',
+  'Help in your neighbourhood': 'آپ کے علاقے میں مدد',
+  'Choose an area to see who can help.':
+      'دستیاب کاریگر دیکھنے کے لیے علاقہ منتخب کریں۔',
+  'Search within {radius} km of your location.':
+      'اپنے مقام کے {radius} کلومیٹر کے اندر تلاش کریں۔',
+  'Explore now. Book when connected.': 'ابھی خدمات دیکھیں، کنکشن پر بک کریں۔',
+  'All services and skills are ready to browse. Live worker search and bookings are not connected yet.':
+      'تمام خدمات اور مہارتیں دیکھ سکتے ہیں۔ کاریگر کی تلاش اور بکنگ ابھی منسلک نہیں ہیں۔',
+  'Local help starts with your area.': 'مقامی مدد کے لیے اپنا علاقہ بتائیں۔',
+  'Use your current location or choose a city. Your exact position stays private.':
+      'موجودہ مقام استعمال کریں یا شہر منتخب کریں۔ آپ کا درست مقام نجی رہتا ہے۔',
+  'A little help. A simple process.': 'مدد حاصل کرنے کا آسان طریقہ۔',
+  'Choose a service': 'خدمت منتخب کریں',
+  'Find someone nearby': 'قریبی کاریگر تلاش کریں',
+  'Agree on the work': 'کام طے کریں',
+  'Pick the profession and skill you need.':
+      'مطلوبہ پیشہ اور مہارت منتخب کریں۔',
+  'Set your area and compare genuine worker profiles.':
+      'اپنا علاقہ منتخب کریں اور اصل کاریگر کی پروفائل دیکھیں۔',
+  'Confirm the task, price and timing before work begins.':
+      'کام شروع ہونے سے پہلے کام، قیمت اور وقت طے کریں۔',
+  'FOR SKILLED WORKERS': 'ہنرمندوں کے لیے',
+  'Your skills. Your next opportunity.': 'آپ کی مہارت۔ نیا موقع۔',
+  'Build your profile, set your services and let local customers find your work.':
+      'پروفائل بنائیں، خدمات درج کریں اور مقامی گاہکوں تک اپنا کام پہنچائیں۔',
+  'Offer my services': 'اپنی خدمات پیش کریں',
+  'Your contacts. Always with you.': 'آپ کے رابطے، ہمیشہ آپ کے ساتھ۔',
+  'Keep personal contacts and appointment notes on this phone.':
+      'ذاتی رابطے اور ملاقاتوں کے نوٹس اسی فون میں محفوظ رکھیں۔',
+  'Made for the way Pakistan works.': 'پاکستان کے کام کرنے کے انداز کے مطابق۔',
+  'Good help starts here': 'اچھی مدد کا آغاز یہاں سے',
+  'Khidmat service professionals': 'خدمت کے ہنرمند افراد',
   'Disable push notifications': 'پش اطلاعات بند کریں',
   'Sign in to enable push notifications.': 'پش اطلاعات کے لیے سائن اِن کریں۔',
   'The push provider did not return a device token. Try again.':
@@ -132,8 +210,6 @@ const Map<String, String> marketplaceUrduStrings = {
   'WhatsApp number (if different)': 'واٹس ایپ نمبر (اگر مختلف ہے)',
   'You can request work and offer services with the same account.':
       'ایک ہی اکاؤنٹ سے کام کی درخواست اور اپنی خدمات پیش کر سکتے ہیں۔',
-  'Find workers': 'کاریگر تلاش کرنا',
-  'Offer my services': 'اپنی خدمات پیش کرنا',
   'Save account': 'اکاؤنٹ محفوظ کریں',
   'Account saved.': 'اکاؤنٹ محفوظ ہو گیا۔',
   'My professional profile': 'میری پیشہ ورانہ پروفائل',
@@ -368,7 +444,6 @@ const Map<String, String> marketplaceUrduStrings = {
   'Find local help': 'مقامی مدد تلاش کریں',
   'Choose your city or use device location, then select a profession and skill. Compare experience, prices, availability and reviews. Send a request with the work details and a proposed time.':
       'شہر یا موجودہ مقام کے بعد پیشہ اور ہنر منتخب کریں۔ تجربے، قیمت، دستیابی اور آراء کا موازنہ کریں۔ تفصیل اور مجوزہ وقت کے ساتھ کام کی درخواست بھیجیں۔',
-  'Agree on the work': 'کام طے کریں',
   'The worker must accept your request to confirm the booking. Agree on the scope, materials and final price directly. A starting price is an estimate for the stated pricing unit.':
       'بکنگ کی تصدیق کے لیے کاریگر کا قبول کرنا ضروری ہے۔ کام، سامان اور آخری قیمت براہِ راست طے کریں۔ ابتدائی قیمت بتائے گئے طریقۂ قیمت کے مطابق تخمینہ ہے۔',
   'Offer your services': 'اپنی خدمات پیش کریں',

@@ -153,7 +153,7 @@ class _MarketplaceWorkerProfileScreenState
                   marketplaceField(
                     neighbourhood,
                     'Neighbourhood',
-                    maxLength: 120,
+                    maxLength: 100,
                   ),
                   marketplaceField(
                     address,
@@ -172,7 +172,11 @@ class _MarketplaceWorkerProfileScreenState
                   ListTile(
                     contentPadding: EdgeInsets.zero,
                     leading: const Icon(Icons.event_outlined),
-                    title: Text(DateFormat.yMMMd().add_jm().format(scheduled)),
+                    title: Text(
+                      DateFormat.yMMMd(
+                        Localizations.localeOf(context).languageCode,
+                      ).add_jm().format(scheduled),
+                    ),
                     subtitle: const LocalizedText('Requested date and time'),
                     trailing: const Icon(Icons.edit_outlined),
                     onTap: submitting
@@ -437,7 +441,7 @@ class _MarketplaceWorkerProfileScreenState
                       size: 12,
                       color: availability == WorkerAvailability.availableNow
                           ? AppColors.success
-                          : AppColors.textMuted,
+                          : MarketplacePalette.muted,
                     ),
                   ),
                 ),
@@ -627,7 +631,7 @@ class _MarketplaceWorkerProfileScreenState
                         children: [
                           Text(
                             '★' * review.rating.clamp(0, 5),
-                            style: const TextStyle(color: AppColors.warning),
+                            style: const TextStyle(color: Color(0xFF8B6200)),
                           ),
                           if (review.comment.isNotEmpty) ...[
                             const SizedBox(height: 8),
@@ -636,9 +640,9 @@ class _MarketplaceWorkerProfileScreenState
                           if (review.createdAt != null) ...[
                             const SizedBox(height: 8),
                             Text(
-                              DateFormat.yMMMd().format(
-                                review.createdAt!.toLocal(),
-                              ),
+                              DateFormat.yMMMd(
+                                Localizations.localeOf(context).languageCode,
+                              ).format(review.createdAt!.toLocal()),
                               style: Theme.of(context).textTheme.bodySmall,
                             ),
                           ],

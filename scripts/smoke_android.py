@@ -8,7 +8,8 @@ import xml.etree.ElementTree as ET
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("apk", type=pathlib.Path)
-parser.add_argument("--expected-version", type=int, default=5004)
+parser.add_argument("--expected-version", type=int, default=5005)
+parser.add_argument("--package", default="com.khidmat.khidmat")
 parser.add_argument("--initial-language", choices=("en", "ur"))
 parser.add_argument("--evidence-name", default="current")
 parser.add_argument("--offline", action="store_true")
@@ -17,7 +18,7 @@ arguments = parser.parse_args()
 apk = arguments.apk.resolve(strict=True)
 evidence = pathlib.Path("smoke-evidence") / arguments.evidence_name
 evidence.mkdir(parents=True, exist_ok=True)
-package = "com.khidmat.khidmat"
+package = arguments.package
 
 def adb(*args, check=True):
     result = subprocess.run(
@@ -90,7 +91,7 @@ def tap_label(xml, label):
 
 def launch():
     adb("shell", "am", "force-stop", package)
-    output = adb("shell", "am", "start", "-W", "-n", package + "/.MainActivity")
+    output = adb("shell", "am", "start", "-W", "-n", package + "/com.khidmat.khidmat.MainActivity")
     assert "Error:" not in output and "Error type" not in output, output
     print(output)
 

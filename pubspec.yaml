@@ -1,7 +1,7 @@
 name: khidmat
 description: Khidmat local services marketplace with private offline contacts and appointments.
 publish_to: 'none'
-version: 2.1.0+5004
+version: 2.1.1+5005
 
 environment:
   sdk: '>=3.10.0 <4.0.0'
@@ -36,3 +36,5 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/images/

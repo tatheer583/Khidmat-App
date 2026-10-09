@@ -31,6 +31,8 @@ import 'marketplace/screens/marketplace_notifications_screen.dart';
 import 'marketplace/screens/marketplace_admin_screen.dart';
 import 'marketplace/screens/marketplace_privacy_screen.dart';
 import 'marketplace/screens/marketplace_help_screen.dart';
+import 'marketplace/screens/marketplace_services_screen.dart';
+import 'marketplace/widgets/marketplace_ui.dart';
 
 class KhidmatApp extends StatefulWidget {
   const KhidmatApp({
@@ -106,44 +108,75 @@ class _KhidmatAppState extends State<KhidmatApp> {
       routes: [
         GoRoute(
           path: '/marketplace',
-          builder: (_, _) => const MarketplaceHomeScreen(),
+          builder: (_, state) => MarketplaceTheme(
+            child: MarketplaceHomeScreen(
+              professionId: state.uri.queryParameters['profession'],
+              skillId: state.uri.queryParameters['skill'],
+            ),
+          ),
+        ),
+        GoRoute(
+          path: '/marketplace/services',
+          builder: (_, state) => MarketplaceTheme(
+            child: MarketplaceServicesScreen(
+              category: state.uri.queryParameters['category'],
+            ),
+          ),
+        ),
+        GoRoute(
+          path: '/marketplace/services/:id',
+          builder: (_, state) => MarketplaceTheme(
+            child: MarketplaceServiceDetailScreen(
+              id: state.pathParameters['id']!,
+              skillId: state.uri.queryParameters['skill'],
+            ),
+          ),
         ),
         GoRoute(
           path: '/marketplace/auth',
-          builder: (_, _) => const MarketplaceAuthScreen(),
+          builder: (_, _) =>
+              const MarketplaceTheme(child: MarketplaceAuthScreen()),
         ),
         GoRoute(
           path: '/marketplace/account',
-          builder: (_, _) => const MarketplaceAccountScreen(),
+          builder: (_, _) =>
+              const MarketplaceTheme(child: MarketplaceAccountScreen()),
         ),
         GoRoute(
           path: '/marketplace/worker/edit',
-          builder: (_, _) => const MarketplaceWorkerFormScreen(),
+          builder: (_, _) =>
+              const MarketplaceTheme(child: MarketplaceWorkerFormScreen()),
         ),
         GoRoute(
           path: '/marketplace/workers/:id',
-          builder: (_, s) =>
-              MarketplaceWorkerProfileScreen(id: s.pathParameters['id']!),
+          builder: (_, s) => MarketplaceTheme(
+            child: MarketplaceWorkerProfileScreen(id: s.pathParameters['id']!),
+          ),
         ),
         GoRoute(
           path: '/marketplace/jobs',
-          builder: (_, _) => const MarketplaceJobsScreen(),
+          builder: (_, _) =>
+              const MarketplaceTheme(child: MarketplaceJobsScreen()),
         ),
         GoRoute(
           path: '/marketplace/notifications',
-          builder: (_, _) => const MarketplaceNotificationsScreen(),
+          builder: (_, _) =>
+              const MarketplaceTheme(child: MarketplaceNotificationsScreen()),
         ),
         GoRoute(
           path: '/marketplace/admin',
-          builder: (_, _) => const MarketplaceAdminScreen(),
+          builder: (_, _) =>
+              const MarketplaceTheme(child: MarketplaceAdminScreen()),
         ),
         GoRoute(
           path: '/marketplace/privacy',
-          builder: (_, _) => const MarketplacePrivacyScreen(),
+          builder: (_, _) =>
+              const MarketplaceTheme(child: MarketplacePrivacyScreen()),
         ),
         GoRoute(
           path: '/marketplace/help',
-          builder: (_, _) => const MarketplaceHelpScreen(),
+          builder: (_, _) =>
+              const MarketplaceTheme(child: MarketplaceHelpScreen()),
         ),
         GoRoute(path: '/', redirect: (_, _) => '/home'),
         GoRoute(path: '/storage', builder: (_, _) => const _StorageScreen()),

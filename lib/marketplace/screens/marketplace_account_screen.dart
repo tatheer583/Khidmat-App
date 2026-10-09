@@ -124,7 +124,7 @@ class _MarketplaceAccountScreenState extends State<MarketplaceAccountScreen> {
                   marketplaceField(
                     _neighbourhood,
                     'Neighbourhood (optional)',
-                    maxLength: 120,
+                    maxLength: 100,
                   ),
                   marketplaceField(
                     _whatsapp,

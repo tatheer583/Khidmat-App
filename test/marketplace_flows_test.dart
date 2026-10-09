@@ -1,7 +1,10 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:typed_data';
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:go_router/go_router.dart';
@@ -11,9 +14,11 @@ import 'package:khidmat/marketplace/screens/marketplace_admin_screen.dart';
 import 'package:khidmat/marketplace/screens/marketplace_auth_screen.dart';
 import 'package:khidmat/marketplace/screens/marketplace_home_screen.dart';
 import 'package:khidmat/marketplace/screens/marketplace_jobs_screen.dart';
+import 'package:khidmat/marketplace/screens/marketplace_services_screen.dart';
 import 'package:khidmat/marketplace/screens/marketplace_worker_form_screen.dart';
 import 'package:khidmat/marketplace/screens/marketplace_worker_profile_screen.dart';
 import 'package:khidmat/marketplace/services/marketplace_controller.dart';
+import 'package:khidmat/marketplace/widgets/marketplace_ui.dart';
 import 'package:khidmat/theme/app_theme.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -195,8 +200,9 @@ void _flow(String description, Future<void> Function(WidgetTester) body) {
 Future<GoRouter> _start(
   WidgetTester tester,
   MarketplaceController controller,
-  String route,
-) async {
+  String route, {
+  GlobalKey? screenshotKey,
+}) async {
   _controllers.add(controller);
   final language = AppLanguage();
   final router = GoRouter(
@@ -204,32 +210,62 @@ Future<GoRouter> _start(
     routes: [
       GoRoute(
         path: '/marketplace',
-        builder: (_, _) => const MarketplaceHomeScreen(),
+        builder: (_, state) => MarketplaceTheme(
+          child: MarketplaceHomeScreen(
+            professionId: state.uri.queryParameters['profession'],
+            skillId: state.uri.queryParameters['skill'],
+          ),
+        ),
+      ),
+      GoRoute(
+        path: '/marketplace/services',
+        builder: (_, state) => MarketplaceTheme(
+          child: MarketplaceServicesScreen(
+            category: state.uri.queryParameters['category'],
+          ),
+        ),
+      ),
+      GoRoute(
+        path: '/marketplace/services/:id',
+        builder: (_, state) => MarketplaceTheme(
+          child: MarketplaceServiceDetailScreen(
+            id: state.pathParameters['id']!,
+            skillId: state.uri.queryParameters['skill'],
+          ),
+        ),
       ),
       GoRoute(
         path: '/marketplace/auth',
-        builder: (_, _) => const MarketplaceAuthScreen(),
+        builder: (_, _) =>
+            const MarketplaceTheme(child: MarketplaceAuthScreen()),
       ),
       GoRoute(
         path: '/marketplace/account',
-        builder: (_, _) => const MarketplaceAccountScreen(),
+        builder: (_, _) =>
+            const MarketplaceTheme(child: MarketplaceAccountScreen()),
       ),
       GoRoute(
         path: '/marketplace/admin',
-        builder: (_, _) => const MarketplaceAdminScreen(),
+        builder: (_, _) =>
+            const MarketplaceTheme(child: MarketplaceAdminScreen()),
       ),
       GoRoute(
         path: '/marketplace/worker/edit',
-        builder: (_, _) => const MarketplaceWorkerFormScreen(),
+        builder: (_, _) =>
+            const MarketplaceTheme(child: MarketplaceWorkerFormScreen()),
       ),
       GoRoute(
         path: '/marketplace/jobs',
-        builder: (_, _) => const MarketplaceJobsScreen(),
+        builder: (_, _) =>
+            const MarketplaceTheme(child: MarketplaceJobsScreen()),
       ),
       GoRoute(
         path: '/marketplace/workers/:id',
-        builder: (_, state) =>
-            MarketplaceWorkerProfileScreen(id: state.pathParameters['id']!),
+        builder: (_, state) => MarketplaceTheme(
+          child: MarketplaceWorkerProfileScreen(
+            id: state.pathParameters['id']!,
+          ),
+        ),
       ),
       GoRoute(
         path: '/home',
@@ -249,12 +285,15 @@ Future<GoRouter> _start(
         ChangeNotifierProvider<AppLanguage>.value(value: language),
       ],
       child: Consumer<AppLanguage>(
-        builder: (_, language, _) => MaterialApp.router(
-          theme: AppTheme.darkTheme,
-          routerConfig: router,
-          locale: language.locale,
-          supportedLocales: const [Locale('en'), Locale('ur')],
-          localizationsDelegates: GlobalMaterialLocalizations.delegates,
+        builder: (_, language, _) => RepaintBoundary(
+          key: screenshotKey,
+          child: MaterialApp.router(
+            theme: AppTheme.darkTheme,
+            routerConfig: router,
+            locale: language.locale,
+            supportedLocales: const [Locale('en'), Locale('ur')],
+            localizationsDelegates: GlobalMaterialLocalizations.delegates,
+          ),
         ),
       ),
     ),
@@ -286,8 +325,180 @@ Future<void> _tap(WidgetTester tester, Finder finder) async {
   await tester.pumpAndSettle();
 }
 
+Future<void> _capture(WidgetTester tester, GlobalKey key, String name) async {
+  await tester.pumpAndSettle();
+  await tester.runAsync(() async {
+    final boundary =
+        key.currentContext!.findRenderObject()! as RenderRepaintBoundary;
+    final image = await boundary.toImage(pixelRatio: 2);
+    final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
+    final directory = Directory('smoke-evidence/marketplace-redesign');
+    await directory.create(recursive: true);
+    await File(
+      '${directory.path}/$name.png',
+    ).writeAsBytes(bytes!.buffer.asUint8List());
+    image.dispose();
+  });
+}
+
 void main() {
   setUp(() => SharedPreferences.setMockInitialValues({}));
+  _flow(
+    'offline directory navigates from a profession to a real skill and retains search filters',
+    (tester) async {
+      final controller = MarketplaceController();
+      await controller.initialize();
+      final electrician = controller.professions.firstWhere(
+        (p) => p.name == 'Electrician',
+      );
+      final skill = electrician.skills.first;
+      await _start(tester, controller, '/marketplace');
+      await _tap(tester, find.widgetWithText(FilledButton, 'Explore services'));
+      expect(find.text('What can we help with?'), findsOneWidget);
+      await tester.enterText(find.byType(TextField).first, 'Electrician');
+      await tester.pumpAndSettle();
+      await _tap(tester, find.byType(MarketplaceServiceCard).first);
+      expect(find.text('Choose the work you need'), findsOneWidget);
+      await _tap(tester, find.byKey(ValueKey('service-skill-${skill.id}')));
+      await _tap(tester, find.byKey(const ValueKey('find-service-workers')));
+      expect(controller.search.professionId, electrician.id);
+      expect(controller.search.skillId, skill.id);
+      expect(find.text('Looking for'), findsOneWidget);
+      expect(find.byType(MarketplaceWorkerCard), findsNothing);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  _flow(
+    'service catalog search finds a skill and category query limits displayed professions',
+    (tester) async {
+      final controller = MarketplaceController();
+      await controller.initialize();
+      final plumber = controller.professions.firstWhere(
+        (p) => p.name == 'Plumber',
+      );
+      final router = await _start(
+        tester,
+        controller,
+        Uri(
+          path: '/marketplace/services',
+          queryParameters: {'category': plumber.category},
+        ).toString(),
+      );
+      expect(find.byType(MarketplaceServiceCard), findsOneWidget);
+      expect(find.text('Plumber'), findsOneWidget);
+      expect(find.text('Electrician'), findsNothing);
+      router.go('/marketplace/services');
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField).first, 'AC repair');
+      await tester.pumpAndSettle();
+      expect(find.byType(MarketplaceServiceCard), findsOneWidget);
+      expect(find.text('AC Technician'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  _flow('narrow phone renders service photos and navigation without overflow', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(320, 640);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final controller = MarketplaceController();
+    await controller.initialize();
+    final router = await _start(tester, controller, '/marketplace');
+    expect(find.byType(Image), findsWidgets);
+    expect(find.byTooltip('Private organizer'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    router.go('/marketplace/services');
+    await tester.pumpAndSettle();
+    expect(find.text('What can we help with?'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    await _tap(tester, find.byType(MarketplaceServiceCard).first);
+    expect(find.text('Choose the work you need'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  _flow(
+    'Urdu service directory remains searchable and navigable on a narrow phone',
+    (tester) async {
+      tester.view.physicalSize = const Size(320, 740);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final controller = MarketplaceController();
+      await controller.initialize();
+      await _start(tester, controller, '/marketplace/services');
+      await tester.tap(find.text('اردو'));
+      await tester.pumpAndSettle();
+      expect(find.text('آپ کو کس کام میں مدد چاہیے؟'), findsOneWidget);
+      expect(
+        Directionality.of(tester.element(find.byType(Scaffold))),
+        TextDirection.rtl,
+      );
+      await tester.enterText(find.byType(TextField).first, 'وائرنگ کی مرمت');
+      await tester.pumpAndSettle();
+      expect(find.byType(MarketplaceServiceCard), findsOneWidget);
+      await _tap(tester, find.byType(MarketplaceServiceCard).first);
+      expect(find.text('اپنا مطلوبہ کام منتخب کریں'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  _flow(
+    'missing service link explains the state and returns to the complete directory',
+    (tester) async {
+      final controller = MarketplaceController();
+      await controller.initialize();
+      await _start(tester, controller, '/marketplace/services/missing');
+      expect(find.text('This service is unavailable'), findsOneWidget);
+      await _tap(tester, find.widgetWithText(FilledButton, 'Explore services'));
+      expect(find.byType(MarketplaceServiceCard), findsWidgets);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  if (const bool.fromEnvironment('CAPTURE_MARKETPLACE_SCREENSHOTS')) {
+    _flow('capture rendered marketplace design evidence', (tester) async {
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final controller = MarketplaceController();
+      await controller.initialize();
+      final key = GlobalKey();
+      final router = await _start(
+        tester,
+        controller,
+        '/marketplace',
+        screenshotKey: key,
+      );
+      await _capture(tester, key, 'marketplace-home-en');
+      router.go('/marketplace/services');
+      await tester.pumpAndSettle();
+      await _capture(tester, key, 'marketplace-services-en');
+      final electrician = controller.professions.firstWhere(
+        (p) => p.name == 'Electrician',
+      );
+      router.go('/marketplace/services/${electrician.id}');
+      await tester.pumpAndSettle();
+      await _capture(tester, key, 'marketplace-detail-en');
+      router.go('/marketplace/auth');
+      await tester.pumpAndSettle();
+      await _capture(tester, key, 'marketplace-auth-en');
+      router.go('/marketplace');
+      await tester.pumpAndSettle();
+      tester.view.physicalSize = const Size(320, 740);
+      await tester.tap(find.text('اردو'));
+      await tester.pumpAndSettle();
+      await _capture(tester, key, 'marketplace-home-ur-narrow');
+      router.go('/marketplace/services');
+      await tester.pumpAndSettle();
+      await _capture(tester, key, 'marketplace-services-ur-narrow');
+      expect(tester.takeException(), isNull);
+    });
+  }
   _flow(
     'admin review hiding requires a decision reason and preserves the original review after refresh',
     (tester) async {
@@ -363,7 +574,9 @@ void main() {
       final controller = MarketplaceController();
       await controller.initialize();
       final router = await _start(tester, controller, '/marketplace');
-      expect(find.textContaining('not connected yet'), findsOneWidget);
+      expect(controller.professions, isNotEmpty);
+      expect(find.text('Everyday services'), findsOneWidget);
+      expect(find.text('Explore services'), findsOneWidget);
       expect(find.byType(MarketplaceWorkerCard), findsNothing);
       router.go('/marketplace/auth');
       await tester.pumpAndSettle();

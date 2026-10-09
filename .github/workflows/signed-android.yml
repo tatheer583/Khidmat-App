@@ -15,6 +15,7 @@ jobs:
           node-version: '22'
       - run: node scripts/check_security.mjs
       - run: node --test test/security_scripts_test.mjs
+      - run: node --test scripts/verify_marketplace_backend.test.mjs
       - name: Validate public marketplace release configuration
         env:
           SUPABASE_URL: ${{ vars.SUPABASE_URL }}
@@ -73,7 +74,7 @@ jobs:
           TOOLS="$ANDROID_HOME/build-tools/36.0.0"
           CERT=$("$TOOLS/apksigner" verify --verbose --print-certs --min-sdk-version 24 release/khidmat-universal.apk | sed -n 's/^Signer #[0-9]* certificate SHA-256 digest: //p')
           test "$CERT" = '7c680b76c6d8ba235ebc72b68b05038ecaddb0d38e7d776f977695db2cdacebd'
-          "$TOOLS/aapt2" dump badging release/khidmat-universal.apk | grep "package: name='com.khidmat.khidmat' versionCode='5004' versionName='2.1.0'"
+          "$TOOLS/aapt2" dump badging release/khidmat-universal.apk | grep "package: name='com.khidmat.khidmat' versionCode='5005' versionName='2.1.1'"
           "$TOOLS/aapt2" dump badging release/khidmat-universal.apk | grep -E "^(sdkVersion|minSdkVersion):'24'$"
           "$TOOLS/zipalign" -c -P 16 4 release/khidmat-universal.apk
           "$TOOLS/aapt2" dump permissions release/khidmat-universal.apk | grep -q android.permission.INTERNET
@@ -92,7 +93,7 @@ jobs:
               libraries = sorted(n for n in archive.namelist() if n.startswith('lib/') and n.endswith('/libapp.so'))
           Path('release/artifacts.json').write_text(json.dumps({
               'file': apk.name, 'bytes': apk.stat().st_size, 'sha256': digest,
-              'versionName': '2.1.0', 'versionCode': 5004, 'minimumAndroidApi': 24,
+              'versionName': '2.1.1', 'versionCode': 5005, 'minimumAndroidApi': 24,
               'signerSha256': '7c680b76c6d8ba235ebc72b68b05038ecaddb0d38e7d776f977695db2cdacebd',
               'nativeLibraries': libraries, 'signatureVerified': True, 'alignment16KBVerified': True,
               'internetPermission': True,

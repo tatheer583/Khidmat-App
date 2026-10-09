@@ -1,10 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:khidmat/marketplace/services/marketplace_repository.dart';
+import 'package:khidmat/marketplace/data/bundled_profession_catalog.dart';
+import 'package:khidmat/marketplace/services/marketplace_controller.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   test(
     'Supabase adapter sends OTP to real auth endpoint and provider rejection leaves no session',
     () async {
@@ -99,6 +102,95 @@ void main() {
       expect(payload!['p_offset'], 40);
       expect(payload!['p_latitude'], isNull);
       expect(paths, ['/rest/v1/professions', '/rest/v1/rpc/search_workers']);
+    },
+  );
+
+  test(
+    'Urdu service queries send canonical labels over HTTP while names and ambiguous aliases remain unchanged',
+    () async {
+      final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+      var catalog = bundledProfessionRows();
+      final requests = <Map<String, dynamic>>[];
+      server.listen((request) async {
+        request.response.headers.contentType = ContentType.json;
+        if (request.uri.path == '/rest/v1/professions') {
+          request.response.write(jsonEncode(catalog));
+        } else {
+          expect(request.uri.path, '/rest/v1/rpc/search_workers');
+          requests.add(
+            Map<String, dynamic>.from(
+              jsonDecode(await utf8.decoder.bind(request).join()) as Map,
+            ),
+          );
+          request.response.write('[]');
+        }
+        await request.response.close();
+      });
+      final client = SupabaseClient(
+        'http://127.0.0.1:${server.port}',
+        'public-test-key',
+      );
+      final controller = MarketplaceController(client: client);
+      addTearDown(() async {
+        controller.dispose();
+        await client.dispose();
+        await server.close(force: true);
+      });
+      expect(await controller.initialize(), isTrue);
+      await controller.setManualLocation('Lahore', 'Model Town');
+      final electrician = controller.professions
+          .where((profession) => profession.name == 'Electrician')
+          .single;
+      const typedQuery = ' وائرنگ   کی مرمت ';
+      expect(
+        await controller.searchWorkers(
+          filters: WorkerSearch(
+            query: typedQuery,
+            professionId: electrician.id,
+            skillId: 'Wiring Repair',
+          ),
+        ),
+        isTrue,
+      );
+      expect(requests.last['p_query'], 'Wiring Repair');
+      expect(requests.last['p_profession_id'], electrician.id);
+      expect(requests.last['p_skill'], 'Wiring Repair');
+      expect(requests.last['p_city'], 'Lahore');
+      expect(requests.last['p_latitude'], isNull);
+      expect(requests.last['p_longitude'], isNull);
+      expect(controller.search.query, typedQuery);
+      for (final entry in {
+        'بجلی کی خدمات': 'Electrical Services',
+        'الیکٹریشن': 'Electrician',
+        'اسلم مستری': 'اسلم مستری',
+        'لاہور': 'لاہور',
+        'Aslam Electrician': 'Aslam Electrician',
+      }.entries) {
+        expect(
+          await controller.searchWorkers(
+            filters: WorkerSearch(query: entry.key),
+          ),
+          isTrue,
+        );
+        expect(requests.last['p_query'], entry.value);
+        expect(controller.search.query, entry.key);
+        expect(requests.last['p_profession_id'], isNull);
+        expect(requests.last['p_skill'], isNull);
+      }
+      catalog = [
+        for (final row in catalog.take(2)) {...row, 'name_ur': 'مشترک خدمت'},
+      ];
+      await controller.reloadCatalog();
+      expect(
+        await controller.searchWorkers(
+          filters: const WorkerSearch(query: 'مشترک خدمت'),
+        ),
+        isTrue,
+      );
+      expect(requests.last['p_query'], 'مشترک خدمت');
+      expect(requests.last['p_profession_id'], isNull);
+      expect(requests.last['p_skill'], isNull);
+      expect(controller.workers, isEmpty);
     },
   );
 }

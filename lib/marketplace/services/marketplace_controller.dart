@@ -3,6 +3,8 @@ import 'dart:typed_data';
 import 'dart:convert';
 import 'package:flutter/widgets.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../localization/app_language.dart' show translateUrdu;
+import '../data/bundled_profession_catalog.dart';
 import '../models/marketplace_models.dart';
 import 'device_location_service.dart';
 import 'marketplace_repository.dart';
@@ -11,6 +13,8 @@ import 'worker_photo_service.dart';
 export '../models/marketplace_models.dart';
 export 'device_location_service.dart';
 export 'marketplace_repository.dart';
+
+enum CatalogSource { bundled, server }
 
 /// Coordinates authenticated operations. All authoritative validation, ownership
 /// and eligibility checks also run in the database; UI roles are never trusted.
@@ -46,7 +50,12 @@ class MarketplaceController extends ChangeNotifier with WidgetsBindingObserver {
   MarketplaceProfile? profile;
   WorkerDraft? ownWorker;
   WorkerAvailability ownAvailability = WorkerAvailability.unknown;
-  List<Profession> professions = [];
+  // Browsing service definitions never depends on credentials, GPS or a server.
+  List<Profession> professions = loadBundledProfessionCatalog();
+  CatalogSource catalogSource = CatalogSource.bundled;
+  bool catalogLoading = false, workerSearchLoading = false;
+  String? catalogError, workerSearchError;
+  Future<bool>? _catalogFetch;
   List<MarketplaceWorker> workers = [];
   List<MarketplaceJob> jobs = [];
   List<MarketplaceNotification> notifications = [];
@@ -71,6 +80,70 @@ class MarketplaceController extends ChangeNotifier with WidgetsBindingObserver {
   String? get userId => _repository?.userId;
   String? get pendingPhone => _pendingPhone;
   int get unreadCount => notifications.where((n) => !n.isRead).length;
+  List<String> get professionCategories =>
+      professions.map((p) => p.category).toSet().toList();
+
+  List<Profession> filterProfessions({
+    String query = '',
+    String? category,
+    String? professionId,
+    String? skillId,
+  }) {
+    final terms = query
+        .toLowerCase()
+        .trim()
+        .split(RegExp(r'\s+'))
+        .where((term) => term.isNotEmpty);
+    return professions.where((profession) {
+      if (category != null && profession.category != category) return false;
+      if (professionId != null && profession.id != professionId) return false;
+      if (skillId != null &&
+          !profession.skills.any((skill) => skill.id == skillId)) {
+        return false;
+      }
+      final searchable =
+          '${profession.category} ${translateUrdu(profession.category)} '
+                  '${profession.name} ${profession.nameUr} '
+                  '${profession.skills.map((skill) => '${skill.name} ${translateUrdu(skill.name)}').join(' ')}'
+              .toLowerCase();
+      final englishWords = RegExp(
+        r'[a-z0-9]+',
+      ).allMatches(searchable).map((match) => match.group(0)!);
+      return terms.every(
+        (term) => RegExp(r'^[a-z0-9]+$').hasMatch(term)
+            ? englishWords.any((word) => word.startsWith(term))
+            : searchable.contains(term),
+      );
+    }).toList();
+  }
+
+  /// Skills and categories are stored under their canonical catalogue labels.
+  /// Convert only exact known Urdu aliases; free-form customer/worker names and
+  /// descriptions remain untouched, and the visible search retains its text.
+  String _canonicalWorkerQuery(String query) {
+    String normalize(String label) =>
+        label.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
+    final normalized = normalize(query);
+    if (normalized.isEmpty) return query;
+    final candidates = <String>{};
+    for (final profession in professions) {
+      if (profession.nameUr.isNotEmpty &&
+          normalize(profession.nameUr) == normalized) {
+        candidates.add(profession.name);
+      }
+      for (final label in [
+        profession.name,
+        profession.category,
+        ...profession.skills.map((skill) => skill.name),
+      ]) {
+        final translated = translateUrdu(label);
+        if (translated != label && normalize(translated) == normalized) {
+          candidates.add(label);
+        }
+      }
+    }
+    return candidates.length == 1 ? candidates.single : query;
+  }
 
   void _changed() {
     if (!_disposed) notifyListeners();
@@ -136,7 +209,8 @@ class MarketplaceController extends ChangeNotifier with WidgetsBindingObserver {
       _initializing = false;
       notice =
           configurationError ??
-          'Online services are not configured. Your saved phone records are still available.';
+          'Browse services now. Connecting to workers requires online service setup. Your saved phone records remain available.';
+      catalogError = configurationError;
       _changed();
       return true;
     }
@@ -166,9 +240,7 @@ class MarketplaceController extends ChangeNotifier with WidgetsBindingObserver {
       });
     });
     final result = await _run(() async {
-      professions = (await _api.fetchProfessions())
-          .map(Profession.fromJson)
-          .toList();
+      await reloadCatalog();
       _syncWatch();
       if (isAuthenticated) await _loadOwnAccount();
       initialized = true;
@@ -176,6 +248,56 @@ class MarketplaceController extends ChangeNotifier with WidgetsBindingObserver {
     });
     _initializing = false;
     return result ?? false;
+  }
+
+  /// Server definitions replace bundled data, including an intentionally empty
+  /// active catalogue. A failed refresh retains the last successful definitions.
+  Future<bool> reloadCatalog() {
+    if (_disposed || !configured) return Future.value(false);
+    final pending = _catalogFetch;
+    if (pending != null) return pending;
+    final operation = _fetchCatalog();
+    _catalogFetch = operation;
+    unawaited(
+      operation.then((_) {
+        if (identical(_catalogFetch, operation)) _catalogFetch = null;
+      }),
+    );
+    return operation;
+  }
+
+  Future<bool> _fetchCatalog() async {
+    catalogLoading = true;
+    catalogError = null;
+    _changed();
+    try {
+      final rows = await _api.fetchProfessions().timeout(
+        const Duration(seconds: 15),
+      );
+      final loaded = rows.map(Profession.fromJson).toList();
+      if (loaded.any(
+            (profession) =>
+                profession.id.isEmpty ||
+                profession.name.isEmpty ||
+                profession.category.isEmpty,
+          ) ||
+          loaded.map((profession) => profession.id).toSet().length !=
+              loaded.length) {
+        throw const FormatException(
+          'The service catalogue could not be read. Please retry.',
+        );
+      }
+      if (_disposed) return false;
+      professions = List.unmodifiable(loaded);
+      catalogSource = CatalogSource.server;
+      return true;
+    } catch (exception) {
+      if (!_disposed) catalogError = marketplaceError(exception);
+      return false;
+    } finally {
+      catalogLoading = false;
+      _changed();
+    }
   }
 
   void _syncWatch() {
@@ -380,6 +502,8 @@ class MarketplaceController extends ChangeNotifier with WidgetsBindingObserver {
         location = next;
         workers = [];
         canLoadMore = false;
+        workerSearchError = null;
+        workerSearchLoading = false;
         _searchGeneration++;
         notice = 'Browsing ${next.label}. Distances require device location.';
         return true;
@@ -393,6 +517,8 @@ class MarketplaceController extends ChangeNotifier with WidgetsBindingObserver {
           locationPermission = LocationAccess.granted;
           workers = [];
           canLoadMore = false;
+          workerSearchError = null;
+          workerSearchLoading = false;
           _searchGeneration++;
           notice = 'Current location selected for this search.';
           return true;
@@ -411,45 +537,71 @@ class MarketplaceController extends ChangeNotifier with WidgetsBindingObserver {
     WorkerSearch? filters,
     bool append = false,
   }) async {
+    if (_disposed) return false;
     final generation = ++_searchGeneration;
     final requested = filters ?? search;
-    return await _run(() async {
-          if (location == null) {
-            workers = [];
-            canLoadMore = false;
-            notice = 'Choose your location to find workers.';
-            return true;
-          }
-          if (append && !canLoadMore) return true;
-          final offset = append ? _workerOffset : 0;
-          dynamic rows;
-          try {
-            rows = await _api.call(
-              'search_workers',
-              params: requested.toRpc(
-                location!,
-                offset: offset,
-                limit: _pageSize,
-              ),
-            );
-          } catch (_) {
-            if (generation != _searchGeneration) return false;
-            rethrow;
-          }
-          if (_disposed || generation != _searchGeneration) return false;
-          final loaded = _rows(rows).map(MarketplaceWorker.fromJson).toList();
-          final merged = <String, MarketplaceWorker>{
-            if (append)
-              for (final worker in workers) worker.id: worker,
-            for (final worker in loaded) worker.id: worker,
-          };
-          search = requested;
-          workers = merged.values.toList();
-          _workerOffset = offset + loaded.length;
-          canLoadMore = loaded.length == _pageSize && _workerOffset <= 10000;
-          return true;
-        }) ??
-        false;
+    _operations++;
+    workerSearchLoading = true;
+    workerSearchError = null;
+    try {
+      requested.validate();
+      // The service/category/skill selection remains usable while offline.
+      search = requested;
+      if (!append) {
+        workers = [];
+        canLoadMore = false;
+        _workerOffset = 0;
+      }
+      _changed();
+      if (!configured) {
+        workerSearchError =
+            configurationError ??
+            'Worker discovery needs an online connection to Khidmat. You can browse all services and use your saved phone records.';
+        return false;
+      }
+      if (location == null) {
+        workers = [];
+        canLoadMore = false;
+        notice = 'Choose your location to find workers.';
+        return true;
+      }
+      if (append && !canLoadMore) return true;
+      final offset = append ? _workerOffset : 0;
+      final effectiveFilters = requested.copyWith(
+        query: _canonicalWorkerQuery(requested.query),
+      );
+      final rows = await _api
+          .call(
+            'search_workers',
+            params: effectiveFilters.toRpc(
+              location!,
+              offset: offset,
+              limit: _pageSize,
+            ),
+          )
+          .timeout(const Duration(seconds: 20));
+      if (_disposed || generation != _searchGeneration) return false;
+      final loaded = _rows(rows).map(MarketplaceWorker.fromJson).toList();
+      final merged = <String, MarketplaceWorker>{
+        if (append)
+          for (final worker in workers) worker.id: worker,
+        for (final worker in loaded) worker.id: worker,
+      };
+      search = requested;
+      workers = merged.values.toList();
+      _workerOffset = offset + loaded.length;
+      canLoadMore = loaded.length == _pageSize && _workerOffset <= 10000;
+      return true;
+    } catch (exception) {
+      if (!_disposed && generation == _searchGeneration) {
+        workerSearchError = marketplaceError(exception);
+      }
+      return false;
+    } finally {
+      _operations--;
+      if (generation == _searchGeneration) workerSearchLoading = false;
+      _changed();
+    }
   }
 
   Future<MarketplaceWorker?> loadWorker(String id) => _run(() async {
@@ -917,11 +1069,7 @@ class MarketplaceController extends ChangeNotifier with WidgetsBindingObserver {
     if (!initialized && !await initialize()) return false;
     final result =
         await _run(() async {
-          if (professions.isEmpty) {
-            professions = (await _api.fetchProfessions())
-                .map(Profession.fromJson)
-                .toList();
-          }
+          await reloadCatalog();
           if (isAuthenticated) await _loadOwnAccount();
           return true;
         }) ??

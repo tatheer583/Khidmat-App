@@ -1,5 +1,17 @@
 # Marketplace verification — 9 October 2026
 
+## Latest execution after marketplace redesign
+
+- Flutter analysis: **No issues found**.
+- Full Flutter suite: **88 passed, 1 live staging test skipped**. The skipped test requires a real configured Supabase staging project and dedicated accounts.
+- Backend preflight/security scripts: **21 tests passed**; the current local run reports missing `config/marketplace.json`, made no network requests, and performed no migrations or writes.
+- Fresh QA APK: `release/qa/khidmat-marketplace-2.1.1-qa-final.apk`, package `com.khidmat.khidmat.qa`, label `Khidmat QA`, version `2.1.1` / build `5005`, 72.2 MB, SHA-256 `65bdd096d6196461771aeb6233fcc22246bf9a70afd6f9ff784e7f54df1efd28`.
+- APK signature: QA debug certificate `fcb3abe4a4e663022f95242208aa12dfc07514c8f4c735a3f4edbf552e380227`; v2 signature and 16 KB alignment verified. This QA package installs beside the production package and does not update it.
+- The current build includes the bundled 18-profession catalogue, service directory/detail screens, generated category imagery, and the private organizer. Live workers, OTP and shared bookings remain unconfigured until the operator completes [GO_LIVE_CHECKLIST.md](GO_LIVE_CHECKLIST.md).
+
+The earlier results below are retained as historical evidence from the preceding
+2.1.0 implementation and are not the latest totals.
+
 This record covers the local development version 2.1.0+5004. The previous
 offline release's evidence remains in `VERIFICATION.md`; it is not evidence that
 this marketplace has been deployed or that its live provider flows work.

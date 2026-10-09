@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../localization/app_language.dart';
-import '../../widgets/khidmat_brand.dart';
 import '../services/marketplace_controller.dart';
 import '../widgets/marketplace_ui.dart';
 
@@ -86,18 +85,27 @@ class _MarketplaceAuthScreenState extends State<MarketplaceAuthScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Center(child: KhidmatBrandMark(size: 76)),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(22),
+                    child: SizedBox(
+                      height: 180,
+                      child: const MarketplaceAsset(
+                        asset: 'assets/images/khidmat-team-hero.png',
+                        label: 'Khidmat service professionals',
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 24),
                   LocalizedText(
-                    _sent ? 'Check your messages' : 'Your next good connection',
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.headlineSmall,
+                    _sent ? 'Check your messages' : 'Good help starts here',
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                   const SizedBox(height: 12),
                   const LocalizedText(
                     'Use your Pakistani mobile number to create an account or sign in. '
                     'We verify it with a code sent by SMS.',
-                    textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 24),
                   if (!controller.configured)
@@ -181,7 +189,7 @@ class _MarketplaceAuthScreenState extends State<MarketplaceAuthScreen> {
                   ],
                   const SizedBox(height: 8),
                   TextButton(
-                    onPressed: () => context.go('/marketplace'),
+                    onPressed: () => context.go('/marketplace/services'),
                     child: const LocalizedText('Explore services'),
                   ),
                   const LocalizedText(

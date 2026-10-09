@@ -382,7 +382,7 @@ class _MarketplaceWorkerFormScreenState
         validator: marketplaceRequired,
         maxLength: 80,
       ),
-      marketplaceField(_area, 'Neighbourhood / service area', maxLength: 120),
+      marketplaceField(_area, 'Neighbourhood / service area', maxLength: 100),
       const MarketplaceNotice(
         message:
             'Use an area name, not your home address. Customers see your service area '
