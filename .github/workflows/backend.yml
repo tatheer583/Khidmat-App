@@ -1,0 +1,32 @@
+name: Backend SQL security and geography
+on:
+  push:
+    paths: ['supabase/**', '.github/workflows/backend.yml']
+  pull_request:
+    paths: ['supabase/**', '.github/workflows/backend.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  database:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: supabase/tests/package-lock.json
+      - run: npm ci --no-audit --no-fund
+        working-directory: supabase/tests
+      - run: npm test
+        working-directory: supabase/tests
+  edge:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - run: deno check supabase/functions/dispatch-push/index.ts
+      - run: deno test --allow-env supabase/functions/dispatch-push/index_test.ts

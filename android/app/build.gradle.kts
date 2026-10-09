@@ -8,6 +8,8 @@ plugins {
 
 val khidmatKeyProperties = Properties()
 val khidmatKeyFile = rootProject.file("key.properties")
+val khidmatTestBuild = providers.gradleProperty("khidmatTestBuild").orNull == "true" ||
+    providers.environmentVariable("KHIDMAT_TEST_BUILD").orNull == "true"
 if (khidmatKeyFile.exists()) {
     khidmatKeyFile.inputStream().use { khidmatKeyProperties.load(it) }
 }
@@ -48,9 +50,11 @@ android {
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = if (khidmatKeyFile.exists()) signingConfigs.getByName("khidmatRelease") else signingConfigs.getByName("debug")
+            // Test builds must opt in explicitly. Production signing never
+            // silently falls back to a debug certificate.
+            signingConfig = if (khidmatKeyFile.exists()) signingConfigs.getByName("khidmatRelease")
+                else if (khidmatTestBuild) signingConfigs.getByName("debug")
+                else null
         }
     }
 }
@@ -63,4 +67,11 @@ kotlin {
 
 flutter {
     source = "../.."
+}
+
+gradle.taskGraph.whenReady {
+    if (allTasks.any { it.name == "assembleRelease" || it.name == "bundleRelease" } &&
+        !khidmatKeyFile.exists() && !khidmatTestBuild) {
+        throw GradleException("Production signing is missing. Restore the existing private signing configuration; use khidmatTestBuild only for undistributed QA builds.")
+    }
 }

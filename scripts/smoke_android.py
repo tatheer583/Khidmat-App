@@ -8,7 +8,7 @@ import xml.etree.ElementTree as ET
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("apk", type=pathlib.Path)
-parser.add_argument("--expected-version", type=int, default=5003)
+parser.add_argument("--expected-version", type=int, default=5004)
 parser.add_argument("--initial-language", choices=("en", "ur"))
 parser.add_argument("--evidence-name", default="current")
 parser.add_argument("--offline", action="store_true")
@@ -57,12 +57,14 @@ def wait_for_screen(name, language=None):
             or "Khidmat setup is not complete" in xml
             or "Trusted local help" in xml
             or "Trusted help" in xml  # Previous signed releases use this label.
+            or "Private organizer" in xml
         )
         urdu = (
             "رابطہ نہیں ہو سکا" in xml
             or "خدمت کی تیاری مکمل نہیں ہوئی" in xml
             or "قابلِ اعتماد مقامی مدد" in xml
             or "قابلِ اعتماد مدد" in xml  # Previous signed releases use this translation.
+            or "نجی ریکارڈ" in xml
         )
         usable = english or urdu
         expected = language is None or has_label(xml, "English" if language == "ur" else "اردو")
@@ -144,7 +146,12 @@ def exercise_local_flow():
     if has_label(xml, "English"):
         tap_label(xml, "English")
         wait_for_screen("local-flow-english", "en")
-    tap_visible("Get started")
+    xml = hierarchy("local-entry")
+    if has_label(xml, "Private organizer"):
+        tap_visible("Private organizer")
+    xml = hierarchy("local-profile-check")
+    if not has_label(xml, "Work giver dashboard"):
+        tap_visible("Get started")
     wait_for_label("profile-form", "Create your profile")
     fill_input("Your name", "Ali Test")
     fill_input("City", "Lahore")
@@ -166,6 +173,9 @@ def exercise_local_flow():
     wait_for_label("job-saved", "Job details")
     capture("job-saved")
     launch()
+    xml = wait_for_screen("local-restart-entry", "en")
+    if has_label(xml, "Private organizer"):
+        tap_visible("Private organizer")
     wait_for_label("records-restart", "Work giver dashboard")
     tap_visible("Jobs")
     xml = wait_for_label("retained-job", "Aslam Test")

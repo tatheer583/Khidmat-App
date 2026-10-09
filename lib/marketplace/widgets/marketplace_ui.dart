@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../localization/app_language.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/khidmat_brand.dart';
 
@@ -27,10 +28,12 @@ class MarketplacePage extends StatelessWidget {
         children: [
           const KhidmatBrandMark(size: 32),
           const SizedBox(width: 12),
-          Expanded(child: Text(title, overflow: TextOverflow.ellipsis)),
+          Expanded(
+            child: LocalizedText(title, overflow: TextOverflow.ellipsis),
+          ),
         ],
       ),
-      actions: actions,
+      actions: [...actions, const LanguageButton()],
     ),
     body: SafeArea(
       child: Align(
@@ -44,28 +47,30 @@ class MarketplacePage extends StatelessWidget {
     bottomNavigationBar: navigation
         ? NavigationBar(
             selectedIndex: section,
-            onDestinationSelected: (index) => context.go([
-              '/marketplace',
-              '/marketplace/jobs',
-              '/marketplace/worker/edit',
-              '/marketplace/account',
-            ][index]),
-            destinations: const [
+            onDestinationSelected: (index) => context.go(
+              [
+                '/marketplace',
+                '/marketplace/jobs',
+                '/marketplace/worker/edit',
+                '/marketplace/account',
+              ][index],
+            ),
+            destinations: [
               NavigationDestination(
-                icon: Icon(Icons.search),
-                label: 'Discover',
+                icon: const Icon(Icons.search),
+                label: context.tr('Discover'),
               ),
               NavigationDestination(
-                icon: Icon(Icons.work_outline),
-                label: 'Jobs',
+                icon: const Icon(Icons.work_outline),
+                label: context.tr('Jobs'),
               ),
               NavigationDestination(
-                icon: Icon(Icons.handyman_outlined),
-                label: 'My services',
+                icon: const Icon(Icons.handyman_outlined),
+                label: context.tr('My services'),
               ),
               NavigationDestination(
-                icon: Icon(Icons.person_outline),
-                label: 'Account',
+                icon: const Icon(Icons.person_outline),
+                label: context.tr('Account'),
               ),
             ],
           )
@@ -94,7 +99,9 @@ class MarketplaceNotice extends StatelessWidget {
     decoration: BoxDecoration(
       color: (error ? AppColors.error : AppColors.info).withValues(alpha: .10),
       border: Border.all(
-        color: (error ? AppColors.error : AppColors.info).withValues(alpha: .35),
+        color: (error ? AppColors.error : AppColors.info).withValues(
+          alpha: .35,
+        ),
       ),
       borderRadius: BorderRadius.circular(16),
     ),
@@ -106,18 +113,23 @@ class MarketplaceNotice extends StatelessWidget {
           children: [
             Icon(error ? Icons.error_outline : Icons.info_outline, size: 20),
             const SizedBox(width: 10),
-            Expanded(child: Text(message)),
+            Expanded(child: LocalizedText(message)),
           ],
         ),
         if (action != null)
-          TextButton(onPressed: onAction, child: Text(action!)),
+          TextButton(onPressed: onAction, child: LocalizedText(action!)),
       ],
     ),
   );
 }
 
 class MarketplaceHeading extends StatelessWidget {
-  const MarketplaceHeading(this.title, {super.key, this.subtitle, this.trailing});
+  const MarketplaceHeading(
+    this.title, {
+    super.key,
+    this.subtitle,
+    this.trailing,
+  });
 
   final String title;
   final String? subtitle;
@@ -133,10 +145,16 @@ class MarketplaceHeading extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: Theme.of(context).textTheme.titleLarge),
+              LocalizedText(
+                title,
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
               if (subtitle != null) ...[
                 const SizedBox(height: 4),
-                Text(subtitle!, style: Theme.of(context).textTheme.bodySmall),
+                LocalizedText(
+                  subtitle!,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
               ],
             ],
           ),
@@ -159,13 +177,17 @@ class MarketplaceSignIn extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.lock_outline, size: 48, color: AppColors.primaryLight),
+          const Icon(
+            Icons.lock_outline,
+            size: 48,
+            color: AppColors.primaryLight,
+          ),
           const SizedBox(height: 16),
-          Text(message, textAlign: TextAlign.center),
+          LocalizedText(message, textAlign: TextAlign.center),
           const SizedBox(height: 20),
           FilledButton(
             onPressed: () => context.push('/marketplace/auth'),
-            child: const Text('Sign in with phone'),
+            child: const LocalizedText('Sign in with phone'),
           ),
         ],
       ),
@@ -174,7 +196,12 @@ class MarketplaceSignIn extends StatelessWidget {
 }
 
 class MarketplacePhoto extends StatelessWidget {
-  const MarketplacePhoto({super.key, required this.name, this.url, this.radius = 28});
+  const MarketplacePhoto({
+    super.key,
+    required this.name,
+    this.url,
+    this.radius = 28,
+  });
 
   final String name;
   final String? url;
@@ -193,7 +220,7 @@ class MarketplacePhoto extends StatelessWidget {
         width: radius * 2,
         height: radius * 2,
         color: AppColors.primaryContainer,
-        child: url == null || url!.isEmpty
+        child: !isSafeMarketplaceImage(url)
             ? fallback
             : Image.network(
                 url!,
@@ -219,7 +246,9 @@ IconData professionIcon(String category) {
 }
 
 String? marketplaceRequired(String? text) =>
-    text == null || text.trim().length < 2 ? 'Enter at least 2 characters.' : null;
+    text == null || text.trim().length < 2
+    ? 'Enter at least 2 characters.'
+    : null;
 
 String? pakistanPhone(String? text, {bool optional = false}) {
   final value = (text ?? '').replaceAll(RegExp(r'[\s()\-]'), '');
@@ -244,15 +273,32 @@ Widget marketplaceField(
   int lines = 1,
   int maxLength = 100,
   String? hint,
-}) => Padding(
-  padding: const EdgeInsets.only(bottom: 16),
-  child: TextFormField(
-    controller: controller,
-    validator: validator,
-    decoration: InputDecoration(labelText: label, hintText: hint),
-    keyboardType: keyboard,
-    maxLines: lines,
-    maxLength: maxLength,
-    textInputAction: lines == 1 ? TextInputAction.next : TextInputAction.newline,
+}) => Builder(
+  builder: (context) => Padding(
+    padding: const EdgeInsets.only(bottom: 16),
+    child: TextFormField(
+      controller: controller,
+      validator: validator,
+      errorBuilder: (_, error) => LocalizedText(error),
+      decoration: localizedDecoration(
+        context,
+        labelText: label,
+        hintText: hint,
+      ),
+      keyboardType: keyboard,
+      maxLines: lines,
+      maxLength: maxLength,
+      textInputAction: lines == 1
+          ? TextInputAction.next
+          : TextInputAction.newline,
+    ),
   ),
 );
+
+bool isSafeMarketplaceImage(String? url) {
+  final uri = url == null ? null : Uri.tryParse(url);
+  return uri != null &&
+      uri.scheme == 'https' &&
+      uri.host.isNotEmpty &&
+      uri.userInfo.isEmpty;
+}

@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../../localization/app_language.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/app_ui.dart';
-import '../models/marketplace_models.dart';
 import '../services/marketplace_controller.dart';
 import '../widgets/marketplace_ui.dart';
 
@@ -42,20 +42,22 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
     super.dispose();
   }
 
-  Future<void> _search() => context.read<MarketplaceController>().searchWorkers(
-    filters: WorkerSearch(
-      query: _query.text.trim(),
-      professionId: _professionId,
-      skillId: _skillId,
-      radiusKm: _radius,
-      minPrice: _minPrice,
-      maxPrice: _maxPrice,
-      minRating: _rating,
-      minExperience: _experience,
-      availableOnly: _available,
-      sort: _sort,
-    ),
-  );
+  Future<void> _search() async {
+    await context.read<MarketplaceController>().searchWorkers(
+      filters: WorkerSearch(
+        query: _query.text.trim(),
+        professionId: _professionId,
+        skillId: _skillId,
+        radiusKm: _radius,
+        minPrice: _minPrice,
+        maxPrice: _maxPrice,
+        minRating: _rating,
+        minExperience: _experience,
+        availableOnly: _available,
+        sort: _sort,
+      ),
+    );
+  }
 
   Future<void> _location() async {
     final controller = context.read<MarketplaceController>();
@@ -91,12 +93,18 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
                 FilledButton.icon(
                   onPressed: () async {
                     Navigator.pop(sheetContext);
-                    await controller.useDeviceLocation();
-                    if (mounted) await _search();
+                    final selected = await controller.useDeviceLocation();
+                    if (mounted && selected) await _search();
                   },
                   icon: const Icon(Icons.my_location),
-                  label: const Text('Use my current location'),
+                  label: const LocalizedText('Use my current location'),
                 ),
+                if (controller.locationPermission ==
+                    LocationAccess.deniedForever)
+                  TextButton(
+                    onPressed: controller.openLocationSettings,
+                    child: const LocalizedText('Open app location settings'),
+                  ),
                 const SizedBox(height: 22),
                 marketplaceField(city, 'City', validator: marketplaceRequired),
                 marketplaceField(neighbourhood, 'Neighbourhood (optional)'),
@@ -110,7 +118,7 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
                     );
                     if (mounted) await _search();
                   },
-                  child: const Text('Search this area'),
+                  child: const LocalizedText('Search this area'),
                 ),
               ],
             ),
@@ -130,8 +138,12 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
     var experience = _experience;
     var available = _available;
     var sort = _sort;
-    final min = TextEditingController(text: _minPrice?.toStringAsFixed(0) ?? '');
-    final max = TextEditingController(text: _maxPrice?.toStringAsFixed(0) ?? '');
+    final min = TextEditingController(
+      text: _minPrice?.toStringAsFixed(0) ?? '',
+    );
+    final max = TextEditingController(
+      text: _maxPrice?.toStringAsFixed(0) ?? '',
+    );
     final form = GlobalKey<FormState>();
     final applied = await showModalBottomSheet<bool>(
       context: context,
@@ -153,7 +165,9 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const MarketplaceHeading('Find the right worker'),
-                  Text('Search radius: ${radius.toStringAsFixed(0)} km'),
+                  LocalizedText(
+                    'Search radius: ${radius.toStringAsFixed(0)} km',
+                  ),
                   Slider(
                     value: radius,
                     min: 1,
@@ -161,19 +175,33 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
                     divisions: 99,
                     onChanged: (v) => update(() => radius = v),
                   ),
-                  const Text(
+                  const LocalizedText(
                     'A distance and radius are available with device coordinates. '
                     'Manual location searches match the selected city and neighbourhood.',
                   ),
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
                     initialValue: sort,
-                    decoration: const InputDecoration(labelText: 'Sort workers'),
+                    decoration: const InputDecoration(
+                      labelText: 'Sort workers',
+                    ),
                     items: const [
-                      DropdownMenuItem(value: 'distance', child: Text('Nearest')),
-                      DropdownMenuItem(value: 'rating', child: Text('Highest rated')),
-                      DropdownMenuItem(value: 'price', child: Text('Lowest starting price')),
-                      DropdownMenuItem(value: 'experience', child: Text('Most experienced')),
+                      DropdownMenuItem(
+                        value: 'distance',
+                        child: LocalizedText('Nearest'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'rating',
+                        child: LocalizedText('Highest rated'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'price',
+                        child: LocalizedText('Lowest starting price'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'experience',
+                        child: LocalizedText('Most experienced'),
+                      ),
                     ],
                     onChanged: (v) => update(() => sort = v!),
                   ),
@@ -186,9 +214,8 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
                           min,
                           'Min price (PKR)',
                           keyboard: TextInputType.number,
-                          validator: (v) => v!.trim().isEmpty
-                              ? null
-                              : nonNegativeNumber(v),
+                          validator: (v) =>
+                              v!.trim().isEmpty ? null : nonNegativeNumber(v),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -201,7 +228,8 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
                             if (v!.trim().isEmpty) return null;
                             final error = nonNegativeNumber(v);
                             if (error != null) return error;
-                            if (double.parse(v) < (double.tryParse(min.text) ?? 0)) {
+                            if (double.parse(v) <
+                                (double.tryParse(min.text) ?? 0)) {
                               return 'Maximum must be at least the minimum.';
                             }
                             return null;
@@ -210,9 +238,13 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
                       ),
                     ],
                   ),
-                  const Text('Compare prices with the same pricing unit on worker profiles.'),
+                  const LocalizedText(
+                    'Compare prices with the same pricing unit on worker profiles.',
+                  ),
                   const SizedBox(height: 16),
-                  Text('Minimum rating: ${rating == 0 ? 'Any' : rating.toStringAsFixed(1)}'),
+                  LocalizedText(
+                    'Minimum rating: ${rating == 0 ? 'Any' : rating.toStringAsFixed(1)}',
+                  ),
                   Slider(
                     value: rating,
                     min: 0,
@@ -220,7 +252,7 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
                     divisions: 10,
                     onChanged: (v) => update(() => rating = v),
                   ),
-                  Text('Minimum experience: $experience years'),
+                  LocalizedText('Minimum experience: $experience years'),
                   Slider(
                     value: experience.toDouble(),
                     min: 0,
@@ -230,17 +262,21 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
                   ),
                   SwitchListTile(
                     contentPadding: EdgeInsets.zero,
-                    title: const Text('Available now only'),
-                    subtitle: const Text('Requires a recent availability update.'),
+                    title: const LocalizedText('Available now only'),
+                    subtitle: const LocalizedText(
+                      'Requires a recent availability update.',
+                    ),
                     value: available,
                     onChanged: (v) => update(() => available = v),
                   ),
                   const SizedBox(height: 16),
                   FilledButton(
                     onPressed: () {
-                      if (form.currentState!.validate()) Navigator.pop(sheetContext, true);
+                      if (form.currentState!.validate()) {
+                        Navigator.pop(sheetContext, true);
+                      }
                     },
-                    child: const Text('Apply filters'),
+                    child: const LocalizedText('Apply filters'),
                   ),
                 ],
               ),
@@ -269,11 +305,16 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
   @override
   Widget build(BuildContext context) {
     final controller = context.watch<MarketplaceController>();
-    final categories = controller.professions.map((p) => p.category).toSet().toList();
+    final categories = controller.professions
+        .map((p) => p.category)
+        .toSet()
+        .toList();
     final professions = controller.professions
         .where((p) => _category == null || p.category == _category)
         .toList();
-    final selected = controller.professions.where((p) => p.id == _professionId).firstOrNull;
+    final selected = controller.professions
+        .where((p) => p.id == _professionId)
+        .firstOrNull;
     final location = controller.location;
     final permission = controller.locationPermission.name;
     return MarketplacePage(
@@ -304,19 +345,31 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Good work. Close to home.', style: Theme.of(context).textTheme.headlineMedium),
+                  LocalizedText(
+                    'Good work. Close to home.',
+                    style: Theme.of(context).textTheme.headlineMedium,
+                  ),
                   const SizedBox(height: 10),
-                  const Text('Find skilled people for your home, your workplace and your next project.'),
+                  const LocalizedText(
+                    'Find skilled people for your home, your workplace and your next project.',
+                  ),
                   const SizedBox(height: 18),
                   ListTile(
                     contentPadding: EdgeInsets.zero,
-                    leading: const Icon(Icons.location_on_outlined, color: AppColors.primaryLight),
-                    title: Text(location == null
-                        ? 'Choose your search location'
-                        : [location.neighbourhood, location.city].where((s) => s.isNotEmpty).join(', ')),
-                    subtitle: Text(location?.isDevice == true
-                        ? 'Device location · ${_radius.toStringAsFixed(0)} km radius'
-                        : 'Manual area · distances are not shown'),
+                    leading: const Icon(
+                      Icons.location_on_outlined,
+                      color: AppColors.primaryLight,
+                    ),
+                    title: LocalizedText(
+                      location == null
+                          ? 'Choose your search location'
+                          : location.label,
+                    ),
+                    subtitle: LocalizedText(
+                      location?.isDevice == true
+                          ? 'Device location · ${_radius.toStringAsFixed(0)} km radius'
+                          : 'Manual area · distances are not shown',
+                    ),
                     trailing: const Icon(Icons.expand_more),
                     onTap: _location,
                   ),
@@ -324,12 +377,29 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
               ),
             ),
             const SizedBox(height: 16),
+            OutlinedButton.icon(
+              onPressed: () => context.go('/home'),
+              icon: const Icon(Icons.book_outlined),
+              label: const LocalizedText('Private organizer'),
+            ),
+            const SizedBox(height: 16),
             if (!controller.configured)
               const MarketplaceNotice(
-                message: 'The marketplace is not connected yet. You can explore services; '
-                    'live workers, verified sign-in and job requests will become available after setup.',
+                message:
+                    'The marketplace is not connected yet. Live service categories, workers, '
+                    'verified sign-in and job requests will become available after setup. Your saved phone records remain available.',
               ),
-            if (permission == 'denied' || permission == 'deniedForever' || permission == 'serviceDisabled')
+            if (controller.profile != null && !controller.profile!.isActive)
+              MarketplaceNotice(
+                message:
+                    'Your account is restricted. You can browse services, but marketplace actions are unavailable.',
+                error: true,
+                action: 'View account status',
+                onAction: () => context.go('/marketplace/account'),
+              ),
+            if (permission == 'denied' ||
+                permission == 'deniedForever' ||
+                permission == 'serviceDisabled')
               MarketplaceNotice(
                 message: permission == 'serviceDisabled'
                     ? 'Location services are switched off. You can choose a city or enable device location.'
@@ -342,7 +412,7 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
             TextField(
               controller: _query,
               decoration: InputDecoration(
-                hintText: 'Search profession, service or skill',
+                hintText: context.tr('Search profession, service or skill'),
                 prefixIcon: const Icon(Icons.search),
                 suffixIcon: IconButton(
                   tooltip: 'Search filters',
@@ -358,26 +428,37 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
               onSubmitted: (_) => _search(),
             ),
             const SizedBox(height: 20),
-            const MarketplaceHeading('Explore services', subtitle: 'Choose a category, a profession, then a skill.'),
+            const MarketplaceHeading(
+              'Explore services',
+              subtitle: 'Choose a category, a profession, then a skill.',
+            ),
             Wrap(
               spacing: 8,
               runSpacing: 8,
               children: [
                 ChoiceChip(
-                  label: const Text('All services'),
+                  label: const LocalizedText('All services'),
                   selected: _category == null,
                   onSelected: (_) {
-                    setState(() { _category = null; _professionId = null; _skillId = null; });
+                    setState(() {
+                      _category = null;
+                      _professionId = null;
+                      _skillId = null;
+                    });
                     _search();
                   },
                 ),
                 for (final category in categories)
                   ChoiceChip(
                     avatar: Icon(professionIcon(category), size: 18),
-                    label: Text(category),
+                    label: LocalizedText(category),
                     selected: _category == category,
                     onSelected: (_) {
-                      setState(() { _category = category; _professionId = null; _skillId = null; });
+                      setState(() {
+                        _category = category;
+                        _professionId = null;
+                        _skillId = null;
+                      });
                       _search();
                     },
                   ),
@@ -390,10 +471,13 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
               children: [
                 for (final profession in professions)
                   FilterChip(
-                    label: Text(profession.name),
+                    label: LocalizedText(profession.name),
                     selected: _professionId == profession.id,
                     onSelected: (selected) {
-                      setState(() { _professionId = selected ? profession.id : null; _skillId = null; });
+                      setState(() {
+                        _professionId = selected ? profession.id : null;
+                        _skillId = null;
+                      });
                       _search();
                     },
                   ),
@@ -401,7 +485,10 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
             ),
             if (selected != null && selected.skills.isNotEmpty) ...[
               const SizedBox(height: 16),
-              Text('${selected.name} specializations', style: Theme.of(context).textTheme.titleSmall),
+              LocalizedText(
+                '${selected.name} specializations',
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
               const SizedBox(height: 8),
               Wrap(
                 spacing: 8,
@@ -409,7 +496,7 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
                 children: [
                   for (final skill in selected.skills)
                     ChoiceChip(
-                      label: Text(skill.name),
+                      label: LocalizedText(skill.name),
                       selected: _skillId == skill.id,
                       onSelected: (selected) {
                         setState(() => _skillId = selected ? skill.id : null);
@@ -421,15 +508,24 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
             ],
             const SizedBox(height: 24),
             MarketplaceHeading(
-              location?.isDevice == true ? 'Workers near you' : 'Workers in your area',
-              subtitle: _available ? 'Recently available workers' : 'Compare services, availability and starting prices.',
-              trailing: IconButton(tooltip: 'Filter workers', onPressed: _filters, icon: const Icon(Icons.tune)),
+              location?.isDevice == true
+                  ? 'Workers near you'
+                  : 'Workers in your area',
+              subtitle: _available
+                  ? 'Recently available workers'
+                  : 'Compare services, availability and starting prices.',
+              trailing: IconButton(
+                tooltip: 'Filter workers',
+                onPressed: _filters,
+                icon: const Icon(Icons.tune),
+              ),
             ),
             if (controller.busy) const LinearProgressIndicator(),
             if (location == null)
               EmptyState(
                 title: 'Start with your area',
-                message: 'Choose a city or use your current location to discover local workers.',
+                message:
+                    'Choose a city or use your current location to discover local workers.',
                 icon: Icons.near_me_outlined,
                 action: 'Choose location',
                 onAction: _location,
@@ -437,21 +533,28 @@ class _MarketplaceHomeScreenState extends State<MarketplaceHomeScreen> {
             else if (!controller.busy && controller.workers.isEmpty)
               const EmptyState(
                 title: 'No matching workers yet',
-                message: 'Try another profession, a wider radius or fewer filters. Only published eligible profiles appear here.',
+                message:
+                    'Try another profession, a wider radius or fewer filters. Only published eligible profiles appear here.',
                 icon: Icons.person_search_outlined,
               ),
-            ...controller.workers.map((worker) => MarketplaceWorkerCard(worker: worker)),
+            ...controller.workers.map(
+              (worker) => MarketplaceWorkerCard(worker: worker),
+            ),
             if (controller.canLoadMore)
               OutlinedButton(
-                onPressed: controller.busy ? null : () => controller.searchWorkers(append: true),
-                child: const Text('Load more workers'),
+                onPressed: controller.busy
+                    ? null
+                    : () => controller.searchWorkers(append: true),
+                child: const LocalizedText('Load more workers'),
               ),
             const SizedBox(height: 16),
             Card(
               child: ListTile(
                 leading: const Icon(Icons.handyman_outlined),
-                title: const Text('Put your skills to work'),
-                subtitle: const Text('Create one profile and choose your profession and skills.'),
+                title: const LocalizedText('Put your skills to work'),
+                subtitle: const LocalizedText(
+                  'Create one profile and choose your profession and skills.',
+                ),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => context.go('/marketplace/worker/edit'),
               ),
@@ -485,13 +588,19 @@ class MarketplaceWorkerCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(worker.name, style: Theme.of(context).textTheme.titleMedium),
-                      Text(worker.professionName),
+                      LocalizedText(
+                        worker.name,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      LocalizedText(worker.professionName),
                       const SizedBox(height: 4),
-                      Text(
-                        worker.distanceKm == null
-                            ? [worker.neighbourhood, worker.city].where((s) => s.isNotEmpty).join(', ')
-                            : 'About ${worker.distanceKm!.toStringAsFixed(1)} km away · ${worker.city}',
+                      LocalizedText(
+                        worker.currentDistanceKm == null
+                            ? [
+                                worker.neighbourhood,
+                                worker.city,
+                              ].where((s) => s.isNotEmpty).join(', ')
+                            : 'About ${worker.currentDistanceKm!.toStringAsFixed(1)} km away · ${worker.city}',
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ],
@@ -505,18 +614,31 @@ class MarketplaceWorkerCard extends StatelessWidget {
               spacing: 12,
               runSpacing: 8,
               children: [
-                Text(worker.availability.label,
-                    style: TextStyle(color: worker.availability == WorkerAvailability.availableNow
-                        ? AppColors.success : AppColors.textSecondary)),
-                Text('${worker.experienceYears} years experience'),
-                Text(worker.reviewCount == 0 ? 'No reviews yet' : '★ ${worker.rating.toStringAsFixed(1)} (${worker.reviewCount})'),
+                LocalizedText(
+                  worker.currentAvailability.label,
+                  style: TextStyle(
+                    color:
+                        worker.currentAvailability ==
+                            WorkerAvailability.availableNow
+                        ? AppColors.success
+                        : AppColors.textSecondary,
+                  ),
+                ),
+                LocalizedText('${worker.experienceYears} years experience'),
+                LocalizedText(
+                  worker.reviewCount == 0
+                      ? 'No reviews yet'
+                      : '★ ${worker.rating.toStringAsFixed(1)} (${worker.reviewCount})',
+                ),
               ],
             ),
             const SizedBox(height: 10),
-            Text(worker.rate == 0
-                ? 'Price by agreement'
-                : 'From PKR ${worker.rate.toStringAsFixed(0)} / ${worker.priceUnit}',
-                style: const TextStyle(fontWeight: FontWeight.w700)),
+            LocalizedText(
+              worker.rate == 0
+                  ? 'Price by agreement'
+                  : 'From PKR ${worker.rate.toStringAsFixed(0)} / ${context.tr(worker.priceUnit)}',
+              style: const TextStyle(fontWeight: FontWeight.w700),
+            ),
           ],
         ),
       ),

@@ -1,5 +1,5 @@
 [CmdletBinding()]
-param([switch]$AppBundle)
+param([switch]$AppBundle, [string]$ConfigurationFile = '')
 $ErrorActionPreference = 'Stop'
 $repoRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $taskTools = Join-Path $repoRoot '.tools'
@@ -29,6 +29,10 @@ try {
     throw 'Release signing is missing. Create the private signing key before distributing this build.'
   }
   $arguments = @('build', $(if ($AppBundle) { 'appbundle' } else { 'apk' }), '--release', '--no-pub')
+  if ($ConfigurationFile) {
+    $configurationPath = (Resolve-Path -LiteralPath $ConfigurationFile).Path
+    $arguments += ('--dart-define-from-file=' + $configurationPath)
+  }
   & $flutterPath --no-version-check @arguments
   if ($LASTEXITCODE -ne 0) { throw 'Android build failed.' }
   $releaseRoot = Join-Path $repoRoot 'release'
