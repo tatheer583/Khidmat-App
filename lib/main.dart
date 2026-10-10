@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'app.dart';
+import 'marketplace/bootstrap.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -11,6 +12,6 @@ Future<void> main() async {
       systemNavigationBarColor: Color(0xFF080E0C),
     ),
   );
-  // Paint the loading screen before opening the phone's saved records.
-  runApp(const KhidmatApp());
+  final marketplace = await bootstrapMarketplace();
+  runApp(KhidmatApp(marketplace: marketplace));
 }

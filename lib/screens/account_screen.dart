@@ -98,7 +98,7 @@ class AccountScreen extends StatelessWidget {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 8),
-          const Text('Khidmat 2.0.0', textAlign: TextAlign.center),
+          const Text('Khidmat 2.1.0', textAlign: TextAlign.center),
         ],
       ),
     );

@@ -8,6 +8,8 @@ plugins {
 
 val khidmatKeyProperties = Properties()
 val khidmatKeyFile = rootProject.file("key.properties")
+val khidmatTestBuild = providers.gradleProperty("khidmatTestBuild").orNull == "true" ||
+    providers.environmentVariable("KHIDMAT_TEST_BUILD").orNull == "true"
 if (khidmatKeyFile.exists()) {
     khidmatKeyFile.inputStream().use { khidmatKeyProperties.load(it) }
 }
@@ -33,7 +35,10 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.khidmat.khidmat"
+        applicationId = if (khidmatTestBuild) "com.khidmat.khidmat.qa" else "com.khidmat.khidmat"
+        // Explicit QA builds use separate app storage and can be installed
+        // beside the existing production app without replacing its records.
+        manifestPlaceholders["khidmatAppLabel"] = if (khidmatTestBuild) "Khidmat QA" else "Khidmat"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
@@ -48,9 +53,11 @@ android {
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = if (khidmatKeyFile.exists()) signingConfigs.getByName("khidmatRelease") else signingConfigs.getByName("debug")
+            // Test builds must opt in explicitly. Production signing never
+            // silently falls back to a debug certificate.
+            signingConfig = if (khidmatKeyFile.exists()) signingConfigs.getByName("khidmatRelease")
+                else if (khidmatTestBuild) signingConfigs.getByName("debug")
+                else null
         }
     }
 }
@@ -63,4 +70,11 @@ kotlin {
 
 flutter {
     source = "../.."
+}
+
+gradle.taskGraph.whenReady {
+    if (allTasks.any { it.name == "assembleRelease" || it.name == "bundleRelease" } &&
+        !khidmatKeyFile.exists() && !khidmatTestBuild) {
+        throw GradleException("Production signing is missing. Restore the existing private signing configuration; use khidmatTestBuild only for undistributed QA builds.")
+    }
 }

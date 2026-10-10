@@ -12,6 +12,12 @@ jobs:
     timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node scripts/check_security.mjs
+      - run: node --test test/security_scripts_test.mjs
+      - run: node --test scripts/verify_marketplace_backend.test.mjs
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -28,6 +34,8 @@ jobs:
       - run: flutter analyze --no-pub
       - run: flutter test --no-pub
       - name: Build Android release for runtime testing
+        env:
+          KHIDMAT_TEST_BUILD: 'true'
         run: flutter build apk --release --no-pub --target-platform android-x64
       - uses: actions/upload-artifact@v4
         with:
@@ -46,7 +54,7 @@ jobs:
           arch: x86_64
           target: google_apis
           disable-animations: true
-          script: python3 scripts/smoke_android.py build/app/outputs/flutter-apk/app-release.apk --offline --exercise-local-flow
+          script: python3 scripts/smoke_android.py build/app/outputs/flutter-apk/app-release.apk --package com.khidmat.khidmat.qa --offline --exercise-local-flow
       - uses: actions/upload-artifact@v4
         if: always()
         with:

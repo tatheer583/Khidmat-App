@@ -19,10 +19,33 @@ import 'screens/account_screen.dart';
 import 'screens/backup_screen.dart';
 import 'screens/help_screen.dart';
 import 'widgets/app_ui.dart';
+import 'marketplace/services/marketplace_controller.dart';
+import 'marketplace/push_notifications.dart';
+import 'marketplace/screens/marketplace_home_screen.dart';
+import 'marketplace/screens/marketplace_auth_screen.dart';
+import 'marketplace/screens/marketplace_account_screen.dart';
+import 'marketplace/screens/marketplace_worker_form_screen.dart';
+import 'marketplace/screens/marketplace_worker_profile_screen.dart';
+import 'marketplace/screens/marketplace_jobs_screen.dart';
+import 'marketplace/screens/marketplace_notifications_screen.dart';
+import 'marketplace/screens/marketplace_admin_screen.dart';
+import 'marketplace/screens/marketplace_privacy_screen.dart';
+import 'marketplace/screens/marketplace_help_screen.dart';
+import 'marketplace/screens/marketplace_services_screen.dart';
+import 'marketplace/widgets/marketplace_ui.dart';
 
 class KhidmatApp extends StatefulWidget {
-  const KhidmatApp({super.key, this.store});
+  const KhidmatApp({
+    super.key,
+    this.store,
+    this.marketplace,
+    this.push,
+    this.initialLocation,
+  });
   final LocalStore? store;
+  final MarketplaceController? marketplace;
+  final OptionalPushService? push;
+  final String? initialLocation;
   @override
   State<KhidmatApp> createState() => _KhidmatAppState();
 }
@@ -30,16 +53,37 @@ class KhidmatApp extends StatefulWidget {
 class _KhidmatAppState extends State<KhidmatApp> {
   late final LocalStore _store;
   late final GoRouter _router;
+  late final MarketplaceController _marketplace;
+  late final OptionalPushService _push;
   final AppLanguage _language = AppLanguage();
   @override
   void initState() {
     super.initState();
     _store = widget.store ?? LocalStore();
+    _marketplace = widget.marketplace ?? MarketplaceController();
+    _push =
+        widget.push ??
+        OptionalPushService(
+          client: _marketplace.client,
+          onNotification: () async {
+            await _marketplace.refresh();
+          },
+        );
+    _marketplace.beforeSignOut = () async {
+      await _push.disable();
+    };
     _router = GoRouter(
-      initialLocation: '/home',
-      refreshListenable: _store,
+      initialLocation:
+          widget.initialLocation ??
+          (widget.marketplace != null ? '/marketplace' : '/home'),
+      refreshListenable: Listenable.merge([_store, _marketplace]),
       redirect: (context, state) {
         final path = state.uri.path;
+        // Online accounts and phone-owned records are independent. Backend
+        // authorization is enforced in PostgreSQL for every marketplace action.
+        if (path == '/marketplace' || path.startsWith('/marketplace/')) {
+          return null;
+        }
         if (!_store.initialized) {
           return path == '/storage' ||
                   (path == '/backup' && _store.error != null)
@@ -62,6 +106,78 @@ class _KhidmatAppState extends State<KhidmatApp> {
         return null;
       },
       routes: [
+        GoRoute(
+          path: '/marketplace',
+          builder: (_, state) => MarketplaceTheme(
+            child: MarketplaceHomeScreen(
+              professionId: state.uri.queryParameters['profession'],
+              skillId: state.uri.queryParameters['skill'],
+            ),
+          ),
+        ),
+        GoRoute(
+          path: '/marketplace/services',
+          builder: (_, state) => MarketplaceTheme(
+            child: MarketplaceServicesScreen(
+              category: state.uri.queryParameters['category'],
+            ),
+          ),
+        ),
+        GoRoute(
+          path: '/marketplace/services/:id',
+          builder: (_, state) => MarketplaceTheme(
+            child: MarketplaceServiceDetailScreen(
+              id: state.pathParameters['id']!,
+              skillId: state.uri.queryParameters['skill'],
+            ),
+          ),
+        ),
+        GoRoute(
+          path: '/marketplace/auth',
+          builder: (_, _) =>
+              const MarketplaceTheme(child: MarketplaceAuthScreen()),
+        ),
+        GoRoute(
+          path: '/marketplace/account',
+          builder: (_, _) =>
+              const MarketplaceTheme(child: MarketplaceAccountScreen()),
+        ),
+        GoRoute(
+          path: '/marketplace/worker/edit',
+          builder: (_, _) =>
+              const MarketplaceTheme(child: MarketplaceWorkerFormScreen()),
+        ),
+        GoRoute(
+          path: '/marketplace/workers/:id',
+          builder: (_, s) => MarketplaceTheme(
+            child: MarketplaceWorkerProfileScreen(id: s.pathParameters['id']!),
+          ),
+        ),
+        GoRoute(
+          path: '/marketplace/jobs',
+          builder: (_, _) =>
+              const MarketplaceTheme(child: MarketplaceJobsScreen()),
+        ),
+        GoRoute(
+          path: '/marketplace/notifications',
+          builder: (_, _) =>
+              const MarketplaceTheme(child: MarketplaceNotificationsScreen()),
+        ),
+        GoRoute(
+          path: '/marketplace/admin',
+          builder: (_, _) =>
+              const MarketplaceTheme(child: MarketplaceAdminScreen()),
+        ),
+        GoRoute(
+          path: '/marketplace/privacy',
+          builder: (_, _) =>
+              const MarketplaceTheme(child: MarketplacePrivacyScreen()),
+        ),
+        GoRoute(
+          path: '/marketplace/help',
+          builder: (_, _) =>
+              const MarketplaceTheme(child: MarketplaceHelpScreen()),
+        ),
         GoRoute(path: '/', redirect: (_, _) => '/home'),
         GoRoute(path: '/storage', builder: (_, _) => const _StorageScreen()),
         GoRoute(path: '/welcome', builder: (_, _) => const WelcomeScreen()),
@@ -118,6 +234,7 @@ class _KhidmatAppState extends State<KhidmatApp> {
     );
     unawaited(_language.load());
     if (!_store.initialized) unawaited(_store.initialize());
+    if (!_marketplace.initialized) unawaited(_marketplace.initialize());
   }
 
   @override
@@ -125,6 +242,8 @@ class _KhidmatAppState extends State<KhidmatApp> {
     _router.dispose();
     _language.dispose();
     if (widget.store == null) _store.dispose();
+    if (widget.marketplace == null) _marketplace.dispose();
+    if (widget.push == null) _push.dispose();
     super.dispose();
   }
 
@@ -133,6 +252,8 @@ class _KhidmatAppState extends State<KhidmatApp> {
     providers: [
       ChangeNotifierProvider<LocalStore>.value(value: _store),
       ChangeNotifierProvider<AppLanguage>.value(value: _language),
+      ChangeNotifierProvider<MarketplaceController>.value(value: _marketplace),
+      ChangeNotifierProvider<OptionalPushService>.value(value: _push),
     ],
     child: Consumer<AppLanguage>(
       builder: (_, language, _) => MaterialApp.router(

@@ -66,10 +66,12 @@ class ContactActions {
   }
 
   static Future<void> exportBackup(BuildContext context, String json) async {
+    Directory? exportDirectory;
     try {
       final temporary = await getTemporaryDirectory();
+      exportDirectory = await temporary.createTemp('khidmat-backup-');
       final file = File(
-        '${temporary.path}${Platform.pathSeparator}khidmat-backup.json',
+        '${exportDirectory.path}${Platform.pathSeparator}khidmat-backup.json',
       );
       await file.writeAsString(json, flush: true);
       if (!context.mounted) return;
@@ -86,6 +88,20 @@ class ContactActions {
           context,
           'The backup could not be shared. Please try again.',
         );
+      }
+    } finally {
+      // Remove only the temporary directory created for this export. The
+      // destination chosen in the system share sheet belongs to the user.
+      try {
+        if (exportDirectory != null && await exportDirectory.exists()) {
+          final exportedFile = File(
+            '${exportDirectory.path}${Platform.pathSeparator}khidmat-backup.json',
+          );
+          if (await exportedFile.exists()) await exportedFile.delete();
+          await exportDirectory.delete();
+        }
+      } on FileSystemException {
+        // OS cache cleanup can finish if a share recipient still holds a file.
       }
     }
   }
