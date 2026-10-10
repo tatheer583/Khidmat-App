@@ -670,7 +670,7 @@ class MarketplaceController extends ChangeNotifier with WidgetsBindingObserver {
 
   Future<WorkerContactDetails?> requestContact(String id) =>
       _run<WorkerContactDetails?>(() async {
-        _requireAccount();
+        _requireAccount(role: 'customer');
         final uid = userId, generation = _sessionGeneration;
         final row = await _api.call(
           'get_worker_contact',

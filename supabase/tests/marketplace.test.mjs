@@ -173,6 +173,7 @@ try {
     await as(ids.customer,()=>rejects(()=>rpc('get_worker_contact',{p_worker_id:ids.worker})));
     await saveWorker(ids.worker,{share_contact:true});
     const contact=await as(ids.customer,()=>rpc('get_worker_contact',{p_worker_id:ids.worker})); assert.equal(contact.phone,'+923001234561');
+    await as(ids.manual,()=>rejects(()=>rpc('get_worker_contact',{p_worker_id:ids.worker})));
   });
   let job;
   await test('customer can create future job request and worker receives notification',async()=>{
