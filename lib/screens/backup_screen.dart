@@ -75,6 +75,10 @@ class _BackupScreenState extends State<BackupScreen> {
         const InfoCard(
           'Save a backup to keep your profile, worker contacts and job records when changing phones.',
         ),
+        const InfoCard(
+          'This backup contains names, phone numbers, addresses and notes in an unencrypted file. Save it somewhere private. Online accounts and sessions are not included.',
+          icon: Icons.lock_outline,
+        ),
         const SizedBox(height: 24),
         ElevatedButton.icon(
           onPressed: _busy || !context.watch<LocalStore>().initialized

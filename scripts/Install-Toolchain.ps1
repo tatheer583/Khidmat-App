@@ -61,7 +61,7 @@ if ($LASTEXITCODE -ne 0) { throw 'Android licenses have not been accepted.' }
 $extension = [IO.File]::ReadAllText((Join-Path $flutterRoot 'packages/flutter_tools/gradle/src/main/kotlin/FlutterExtension.kt'))
 $match = [regex]::Match($extension,'compileSdkVersion\s*:\s*Int\s*=\s*(\d+)')
 $api = if ($match.Success) { $match.Groups[1].Value } else { '36' }
-& $sdkManager "--sdk_root=$sdkRoot" 'platform-tools' "platforms;android-$api" 'build-tools;36.0.0'
+& $sdkManager "--sdk_root=$sdkRoot" 'platform-tools' "platforms;android-$api" 'platforms;android-34' 'build-tools;36.0.0' 'ndk;28.2.13676358' 'cmake;3.22.1'
 if ($LASTEXITCODE -ne 0) { throw 'Android SDK package installation failed.' }
 & $flutterPath config --android-sdk $sdkRoot
 if ($LASTEXITCODE -ne 0) { throw 'Flutter SDK configuration failed.' }

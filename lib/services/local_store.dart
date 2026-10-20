@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../models/local_data.dart';
 
 /// A phone-owned JSON file. Writes finish before the UI reports success.
@@ -62,20 +61,8 @@ class LocalStore extends ChangeNotifier {
         notice = 'Recovered your records from the last saved copy.';
       }
       initialized = true;
-      // Remove the old version's connection settings and cached login token.
-      try {
-        final preferences = await SharedPreferences.getInstance();
-        for (final key in preferences.getKeys().where(
-          (key) =>
-              key == 'supabase_url' ||
-              key == 'supabase_key' ||
-              (key.startsWith('sb-') && key.endsWith('-auth-token')),
-        )) {
-          await preferences.remove(key);
-        }
-      } catch (_) {
-        /* Legacy preferences never block opening local records. */
-      }
+      // Local records and online authentication have separate lifecycles.
+      // Opening offline data must never delete connection settings or sessions.
     } catch (_) {
       error =
           'Your saved phone data could not be opened. Check device storage, then try again.';

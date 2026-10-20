@@ -31,6 +31,12 @@ class WelcomeScreen extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 28),
+              FilledButton.icon(
+                onPressed: () => context.go('/marketplace'),
+                icon: const Icon(Icons.travel_explore),
+                label: const LocalizedText('Find local workers'),
+              ),
+              const SizedBox(height: 12),
               ElevatedButton(
                 onPressed: () => context.push('/profile/create'),
                 child: const LocalizedText('Get started'),

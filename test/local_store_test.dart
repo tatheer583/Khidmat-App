@@ -257,7 +257,7 @@ void main() {
   });
 
   test(
-    'obsolete connection and auth preferences are removed while Urdu stays',
+    'opening local records preserves connection settings, sessions and Urdu',
     () async {
       SharedPreferences.setMockInitialValues({
         'supabase_url': 'old-url',
@@ -268,7 +268,13 @@ void main() {
       final reopened = LocalStore(directory: directory);
       await reopened.initialize();
       final preferences = await SharedPreferences.getInstance();
-      expect(preferences.getKeys(), {'app_language'});
+      expect(preferences.getKeys(), {
+        'supabase_url',
+        'supabase_key',
+        'sb-old-auth-token',
+        'app_language',
+      });
+      expect(preferences.getString('sb-old-auth-token'), 'old-token');
       expect(preferences.getString('app_language'), 'ur');
       reopened.dispose();
     },

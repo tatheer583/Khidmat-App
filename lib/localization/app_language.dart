@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'urdu_strings.dart';
+import 'marketplace_urdu_strings.dart';
 
 class AppLanguage extends ChangeNotifier {
   Locale locale = const Locale('en');
@@ -49,11 +50,12 @@ class AppLanguage extends ChangeNotifier {
 }
 
 String translateUrdu(String text) {
-  final exact = urduStrings[text];
+  final exact = urduStrings[text] ?? marketplaceUrduStrings[text];
   if (exact != null) return exact;
-  for (final entry in urduStrings.entries.where(
-    (entry) => entry.key.contains('{'),
-  )) {
+  for (final entry in {
+    ...urduStrings,
+    ...marketplaceUrduStrings,
+  }.entries.where((entry) => entry.key.contains('{'))) {
     final placeholders = RegExp(r'\{(\w+)\}').allMatches(entry.key).toList();
     var pattern = '^';
     var offset = 0;

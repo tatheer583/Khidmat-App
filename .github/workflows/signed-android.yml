@@ -10,6 +10,24 @@ jobs:
     timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node scripts/check_security.mjs
+      - run: node --test test/security_scripts_test.mjs
+      - run: node --test scripts/verify_marketplace_backend.test.mjs
+      - name: Validate public marketplace release configuration
+        env:
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ vars.SUPABASE_PUBLISHABLE_KEY }}
+          KHIDMAT_SUPPORT_EMAIL: ${{ vars.KHIDMAT_SUPPORT_EMAIL }}
+          ENABLE_PUSH: ${{ vars.ENABLE_PUSH }}
+          FIREBASE_API_KEY: ${{ vars.FIREBASE_API_KEY }}
+          FIREBASE_APP_ID: ${{ vars.FIREBASE_APP_ID }}
+          FIREBASE_MESSAGING_SENDER_ID: ${{ vars.FIREBASE_MESSAGING_SENDER_ID }}
+          FIREBASE_PROJECT_ID: ${{ vars.FIREBASE_PROJECT_ID }}
+          FIREBASE_IOS_BUNDLE_ID: ${{ vars.FIREBASE_IOS_BUNDLE_ID }}
+        run: node scripts/configure_release.mjs
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -48,7 +66,7 @@ jobs:
       - run: flutter analyze --no-pub
       - run: flutter test --no-pub
       - name: Build single universal Android APK
-        run: flutter build apk --release --no-pub
+        run: flutter build apk --release --no-pub --dart-define-from-file=config/marketplace.json
       - name: Check signer, package, version and native alignment
         run: |
           mkdir -p release
@@ -56,11 +74,12 @@ jobs:
           TOOLS="$ANDROID_HOME/build-tools/36.0.0"
           CERT=$("$TOOLS/apksigner" verify --verbose --print-certs --min-sdk-version 24 release/khidmat-universal.apk | sed -n 's/^Signer #[0-9]* certificate SHA-256 digest: //p')
           test "$CERT" = '7c680b76c6d8ba235ebc72b68b05038ecaddb0d38e7d776f977695db2cdacebd'
-          "$TOOLS/aapt2" dump badging release/khidmat-universal.apk | grep "package: name='com.khidmat.khidmat' versionCode='5003' versionName='2.0.0'"
+          "$TOOLS/aapt2" dump badging release/khidmat-universal.apk | grep "package: name='com.khidmat.khidmat' versionCode='5005' versionName='2.1.1'"
           "$TOOLS/aapt2" dump badging release/khidmat-universal.apk | grep -E "^(sdkVersion|minSdkVersion):'24'$"
           "$TOOLS/zipalign" -c -P 16 4 release/khidmat-universal.apk
-          if "$TOOLS/aapt2" dump permissions release/khidmat-universal.apk | grep -q android.permission.INTERNET; then
-            echo 'Unexpected Internet permission in the local-records release'
+          "$TOOLS/aapt2" dump permissions release/khidmat-universal.apk | grep -q android.permission.INTERNET
+          if "$TOOLS/aapt2" dump permissions release/khidmat-universal.apk | grep -q android.permission.ACCESS_BACKGROUND_LOCATION; then
+            echo 'Background location is prohibited; marketplace location is foreground only'
             exit 1
           fi
           python3 - <<'PY'
@@ -74,10 +93,10 @@ jobs:
               libraries = sorted(n for n in archive.namelist() if n.startswith('lib/') and n.endswith('/libapp.so'))
           Path('release/artifacts.json').write_text(json.dumps({
               'file': apk.name, 'bytes': apk.stat().st_size, 'sha256': digest,
-              'versionName': '2.0.0', 'versionCode': 5003, 'minimumAndroidApi': 24,
+              'versionName': '2.1.1', 'versionCode': 5005, 'minimumAndroidApi': 24,
               'signerSha256': '7c680b76c6d8ba235ebc72b68b05038ecaddb0d38e7d776f977695db2cdacebd',
               'nativeLibraries': libraries, 'signatureVerified': True, 'alignment16KBVerified': True,
-              'internetPermission': False,
+              'internetPermission': True,
           }, indent=2) + '\n')
           PY
           python3 scripts/verify_release.py release
@@ -92,4 +111,4 @@ jobs:
           retention-days: 14
       - name: Remove runner signing files
         if: always()
-        run: rm -f android/khidmat-release.jks android/key.properties
+        run: rm -f android/khidmat-release.jks android/key.properties config/marketplace.json

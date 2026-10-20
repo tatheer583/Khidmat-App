@@ -1,0 +1,6 @@
+project_id = "khidmat-marketplace"
+
+[functions.dispatch-push]
+# The scheduler sends its dedicated high-entropy X-Dispatch-Secret. The handler
+# fails closed without this secret; a user's JWT is never sufficient.
+verify_jwt = false

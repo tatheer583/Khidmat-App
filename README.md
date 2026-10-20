@@ -1,87 +1,77 @@
 # Khidmat — خدمت
 
-Khidmat keeps your worker contacts, service appointments and work records on your phone, in English or Urdu. Choose **Worker** to organize client jobs or **Work giver** to plan services with people you know.
+Flutter service marketplace for Pakistan, with the existing private offline worker-contact and appointment organizer preserved. English and Urdu share the same flows; Urdu uses right-to-left layouts.
 
-**Version 2.0.0, build 5003. Android 7.0+; iOS 15.0+.**
+**Development version 2.1.1+5005.** Explore now includes 18 service types and their skills even before backend setup, with a redesigned English/Urdu marketplace and illustrative worker photography. The marketplace has **not been deployed or verified with live SMS/push providers**. Real worker discovery, phone login and bookings require the operator's configured backend and genuine published worker accounts. No worker accounts, prices, reviews, distances or successful OTP responses are fabricated.
 
-## Download on Android
+## What is implemented
 
-[**Download Khidmat for Android**](https://github.com/tatheer583/Khidmat-App/releases/download/v2.0.0/khidmat-universal.apk)
+- Supabase phone OTP, Pakistani number normalization, secure session storage, customer/worker/both roles, suspension handling and separate worker onboarding.
+- Configurable professions, skills and questions; editable draft/public profiles, privacy settings, sanitized photos, portfolio, pricing and working hours.
+- Foreground location permissions with manual city/neighbourhood selection; server-side indexed PostGIS search, filters, pagination and expiring availability.
+- Consent-based phone/SMS/WhatsApp contacts, shared job requests, authorized status transitions, customer-confirmed completion and eligible reviews.
+- In-app notifications and optional FCM push; reports, administrator-only account and review moderation, genuine operator verification and private audit records.
+- Local profiles, contacts, appointments, backup/restore and corruption recovery remain separate from online accounts. They are never automatically published.
 
-1. Open this link in your phone’s browser and let the download finish.
-2. Open **Files → Downloads**, then tap **khidmat-universal.apk**.
-3. If prompted, allow installation from that browser, then tap **Install → Open**.
+## Configure and run
 
-There is one Android APK. It supports ARM64, older ARM32 phones and x86-64 devices. The release keeps the existing Khidmat signing key and uses a higher version code, so previous Khidmat-signed releases can update. If an old prototype has a different signature, back up anything you need before uninstalling it.
-
-**iPhone:** An iPhone download needs Apple signing and TestFlight/App Store distribution. The iOS project is included; an installable iPhone release has not been provided. An Android APK cannot install on iPhone.
-
-## Start using the app
-
-1. Tap **Get started**, choose **Worker** or **Work giver**, and save your name and city. Workers can add profession, experience and work details. A phone number is optional for your own profile.
-2. In **Workers**, add actual people you know, with their phone number and service. Search your saved contacts by name, city, English, Urdu or Roman Urdu service words.
-3. Tap a worker to call, open SMS, share their details or plan an appointment. Agree on the time and price directly with that person.
-4. In **Jobs**, save the appointment, address, amount and notes. Update its status as the work progresses.
-5. Use the **اردو / English** button to change language. Urdu uses right-to-left layout and your choice survives restart.
-
-Your profile and job records are saved before the app reports success. Switching roles keeps records for both roles and shows the appropriate dashboard.
-
-## What removing the backend means
-
-**No Supabase account, server, database activation, login or connection setup is required.** The app’s records work without Wi-Fi or mobile data. Calling and SMS use your phone’s own apps and service. Sharing opens the phone’s sharing menu.
-
-Worker contacts are entered by you. Appointment statuses are your own records; saving or confirming one does not notify another phone. This version has no shared public worker directory, OTP/email authentication, in-app live chat, automatic booking acceptance or cross-phone synchronization. Those features require an online service.
-
-The Supabase client, schema, setup screens, chat/authentication code and backend tests have been removed. Old connection preferences and cached Supabase login tokens are removed when this version opens. This change does not delete the remote Supabase project or import its records.
-
-## Backup and restore
-
-Open **Profile → Backup and restore → Save backup** and save **khidmat-backup.json** to Files, Drive or another destination. Restore that file on another phone through **Restore backup**. The app validates the file and asks before replacing existing records.
-
-**Back up before uninstalling or clearing app storage.** Both actions remove local records. A backup includes names, phone numbers, addresses and notes; choose where to share it.
-
-The app uses a private JSON file, with queued writes and a previous copy for recovery. An unreadable primary file is preserved when recovery succeeds. If both copies are unreadable, the app provides retry and backup restore rather than erasing records.
-
-## Build Android
-
-Use Flutter **3.47.6**, Dart **3.13.5**, Java **17**, Android SDK **36** and NDK **28.2.13676358**. Retain the existing private signing key when building updates.
+Use the existing Flutter 3.47.6 / Dart 3.13.5 toolchain. Install dependencies:
 
 ```powershell
 flutter pub get
 flutter analyze --no-pub
 flutter test --no-pub
-pwsh ./scripts/Build-Android.ps1
+node scripts/check_security.mjs
+```
+
+For a configured marketplace, follow [the backend and provider setup instructions](docs/MARKETPLACE_SETUP.md), starting with an isolated Supabase development project. Inventory existing remote tables before applying migrations. Copy `config/marketplace.example.json` to the ignored `config/marketplace.json` and enter only public client configuration:
+
+```powershell
+flutter run --dart-define-from-file=config/marketplace.json
+```
+
+The shorter [go-live checklist](docs/GO_LIVE_CHECKLIST.md) gives the dashboard steps and required manual decisions. Run `node scripts/verify_marketplace_backend.mjs` to check public configuration, deployed catalogue/search APIs and whether phone sign-in is enabled. This check never sends an OTP or changes accounts; enabled settings do not prove SMS delivery. See [product research and design decisions](docs/PRODUCT_RESEARCH_20261009.md).
+
+Supabase SMS credentials and Firebase service accounts belong in server/provider secret storage. Never put them in Dart defines, source control or chat. Phone OTP requires a real provider enabled for Pakistani numbers. Push is disabled until configured and the signed-in user explicitly opts in. Set a real `KHIDMAT_SUPPORT_EMAIL` before public distribution.
+
+Without backend configuration, you can browse/search service types and skills, open service details, choose a manual area, and select **Private organizer** for your own saved records. Local records do not require an online account. Shared marketplace writes require connectivity; an unsent request is never presented as synchronized.
+
+## Backend verification
+
+```powershell
+Set-Location supabase/tests
+npm ci --no-audit --no-fund
+npm test
+Set-Location ../..
+deno check supabase/functions/dispatch-push/index.ts
+deno test --allow-env supabase/functions/dispatch-push/index_test.ts
+```
+
+SQL tests execute PostgreSQL/PostGIS in an isolated PGlite process with Supabase service-schema fixtures. Edge tests mock HTTP; neither replaces live deployment verification. An opt-in staging customer/worker test is provided in `test/marketplace_live_integration_test.dart`. Copy the ignored staging configuration from `config/live-tests.example.json`, use dedicated verified test accounts, and run:
+
+```powershell
+flutter test test/marketplace_live_integration_test.dart --dart-define-from-file=config/live-tests.json
+```
+
+This creates retained staging history. It uses test-account password sessions to exercise the deployed API and does **not** verify SMS delivery, OS permissions, FCM delivery or cross-device Realtime. Leave its opt-in flag false in production.
+
+## Android and iOS
+
+Android requires Java 17, SDK 36, NDK 28.2.13676358 and CMake 3.22.1. Production updates require the existing private signing key; debug signing is never selected silently. After restoring the ignored signing configuration:
+
+```powershell
+pwsh ./scripts/Build-Android.ps1 -ConfigurationFile config/marketplace.json
 pwsh ./scripts/Verify-Apk.ps1 -Apk release/khidmat-universal.apk -SdkRoot C:/path/to/android-sdk
 ```
 
-The build script produces one signed universal APK. `-AppBundle` creates a Play Store bundle. No backend keys or Dart defines are needed.
+For an **undistributed QA build only**, explicitly set `KHIDMAT_TEST_BUILD=true` before `flutter build apk --release`. This creates **Khidmat QA** (`com.khidmat.khidmat.qa`) with separate device storage so it installs beside the existing Khidmat app and preserves its records. It is debug-certificate-signed and cannot update the production app or the earlier same-package QA build. Keep those installations; use an explicit private-organizer export/import if you choose to transfer local records. Clear the flag before production builds. If testing push, register this separate Android package with Firebase and configure its public app settings.
 
-For a cloud build, open [Actions → Build signed Android download](https://github.com/tatheer583/Khidmat-App/actions/workflows/signed-android.yml) and choose **Run workflow** on **main**. This repository already has its signing values in encrypted Actions secrets. Download the resulting artifact; the phone installer inside is **khidmat-universal.apk**. This also provides a build path when Windows application control blocks a Flutter compiler.
+The signed Android workflow requires public repository variables matching the example configuration, an operational support email, and the existing encrypted Android signing secrets. It validates public configuration, scans source for server credentials, and retains signer/version/alignment checks. Internet is required; background location remains prohibited. CI test builds exercise the offline organizer without backend credentials.
 
-[Install-Toolchain.ps1](scripts/Install-Toolchain.ps1) installs the Windows tools. [New-SigningKey.ps1](scripts/New-SigningKey.ps1) is for a new developer’s first private signing key; keep the production key for published updates. CI uses its own test signing certificate.
+iOS builds require macOS, Xcode, CocoaPods and Apple provisioning. Configure the same bundle identifier and, for push, APNs credentials/capability in Firebase and Apple. Foreground location rationale and push entitlements are included. Compile with `flutter build ios --release --no-codesign` on macOS, then use the actual Apple team to produce and validate a signed archive. iOS cannot be built on this Windows workstation.
 
-## Build iOS
+## Preservation and audit
 
-Use macOS with Xcode and CocoaPods:
+The previous published v2.0 download is an offline release, not this marketplace build. Its historical guide and verification record are retained in [OFFLINE_GUIDE.md](docs/OFFLINE_GUIDE.md) and [VERIFICATION.md](docs/VERIFICATION.md). No new release has been published by this development session.
 
-```sh
-flutter pub get
-flutter build ios --simulator --debug
-open ios/Runner.xcworkspace
-```
-
-Select **Runner → Signing & Capabilities → Team** in Xcode and configure your Apple Developer team and provisioning. Then build and distribute a signed archive:
-
-```sh
-flutter build ipa --release
-```
-
-Upload it through Xcode Organizer for TestFlight/App Store distribution. No Apple signing identity has been supplied for this project. See [Flutter’s iOS distribution instructions](https://docs.flutter.dev/deployment/ios).
-
-## Verification and source
-
-[Verification record](docs/VERIFICATION.md) records the tests, signed package checks and device limitations. Analysis and all 21 behavior tests passed; Android and unsigned iOS builds passed. [Published APK verification](https://github.com/tatheer583/Khidmat-App/actions/runs/37625620405) passed on Android 7.0 and Android 15: both installed the public download as an update from version 1.4.0, retained Urdu, saved a profile, worker and appointment offline, and reopened the appointment after restarting the app.
-
-Download the [Android/iOS source package](https://github.com/tatheer583/Khidmat-App/releases/download/v2.0.0/Khidmat-source.zip), or clone this repository. Private signing keys and generated build caches are excluded.
-
-`lib/` contains the app, `android/` and `ios/` the native projects, `test/` the behavior tests, and `scripts/` the build and release verification tools.
+See [the baseline comparison](docs/AUDIT_BASELINE.md), [implementation/file-change record](docs/IMPLEMENTATION_LOG.md), and [current verification and remaining requirements](docs/VERIFICATION_MARKETPLACE.md). Existing legacy preferences and authentication tokens are no longer deleted by offline startup. Secure session migration copies only matching valid legacy data and leaves the original intact. Local backup files contain private names, phones, addresses and notes; they exclude online session credentials and remain unencrypted.

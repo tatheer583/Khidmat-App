@@ -72,6 +72,17 @@ class HomeScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 20),
+          Card(
+            child: ListTile(
+              leading: const Icon(Icons.travel_explore),
+              title: const LocalizedText('Find local workers'),
+              subtitle: const LocalizedText(
+                'Explore services and manage online job requests.',
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => context.go('/marketplace'),
+            ),
+          ),
           Row(
             children: [
               Expanded(child: _Metric('Active jobs', active.length)),

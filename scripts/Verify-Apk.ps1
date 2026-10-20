@@ -2,7 +2,7 @@
 param(
   [Parameter(Mandatory)][string]$Apk,
   [string]$SdkRoot = 'A:\Khidmat-Tools\android-sdk',
-  [int]$ExpectedVersionCode = 5003
+  [int]$ExpectedVersionCode = 5005
 )
 $ErrorActionPreference = 'Stop'
 $apkPath = (Resolve-Path -LiteralPath $Apk).Path
@@ -20,6 +20,10 @@ if ($LASTEXITCODE -ne 0) { throw 'Android package could not be parsed.' }
 if (($badging -join ' ') -notmatch ("name='com.khidmat.khidmat' versionCode='" + $ExpectedVersionCode + "'")) {
   throw 'Unexpected package ID or version code.'
 }
+$permissions = & (Join-Path $buildTools.FullName 'aapt2.exe') dump permissions $apkPath
+if ($LASTEXITCODE -ne 0) { throw 'Could not inspect Android permissions.' }
+if (($permissions -join ' ') -notmatch 'android.permission.INTERNET') { throw 'Marketplace network permission is missing.' }
+if (($permissions -join ' ') -match 'android.permission.ACCESS_BACKGROUND_LOCATION') { throw 'Unexpected background location permission.' }
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 $archive = [IO.Compression.ZipFile]::OpenRead($apkPath)
 try {
